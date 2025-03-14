@@ -1,7 +1,6 @@
-// src/components/layout/MainLayout.tsx
-"use client";
-
-import React, { ReactNode, useState } from 'react';
+'use client'
+import { useRouter } from 'next/navigation'
+import React, { ReactNode, useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { 
@@ -15,14 +14,17 @@ import {
   Settings,
   Menu,
   X,
-  Sparkles
+  Sparkles,
+  LogOut
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Avatar } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
+import { logout } from '@/app/accounts/login/actions';
+import { createClient } from '@/utils/supabase/client';
 
-// Navigation links
+
 const navItems = [
   { 
     name: 'Dashboard', 
@@ -56,10 +58,25 @@ interface MainLayoutProps {
   children: ReactNode;
 }
 
-const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
+export default function MainLayout({ children }: { children: React.ReactNode }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [showProfileMenu, setShowProfileMenu] = useState(false);
+  const [userData, setUserData] = useState<any>(null);
   const pathname = usePathname();
-  
+  const router = useRouter();
+  const supabase = createClient();
+
+  const fetchUser = async () => {
+    const { data } = await supabase.auth.getUser();
+    setUserData(data);
+  };
+
+  useEffect(() => {
+    fetchUser();
+  }, [pathname]);
+
+
+
   return (
     <div className="min-h-screen bg-background text-foreground">
       {/* Top Navigation Bar */}
@@ -116,11 +133,46 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
               </span>
             </button>
             
-            {/* User Avatar */}
-            <Avatar
-              fallback="JS"
-              className="border-2 border-primary/30"
-            />
+            {/* Profile Menu or Login/Signup */}
+            {userData?.user ? (
+              <div className="relative">
+                <button 
+                  onClick={() => setShowProfileMenu(!showProfileMenu)}
+                  className="focus:outline-none"
+                >
+                  <Avatar
+                    fallback={userData.user.email?.charAt(0).toUpperCase() || "U"}
+                    className="border-2 border-primary/30 cursor-pointer"
+                  />
+                </button>
+               
+                {showProfileMenu && (
+                  <div className="absolute right-0 mt-2 w-48 bg-card-bg border border-card-border rounded-md shadow-lg py-1 z-50">
+                    <Link 
+                      href="/profile" 
+                      className="flex items-center px-4 py-2 text-sm text-gray-200 hover:bg-primary/10"
+                      onClick={() => setShowProfileMenu(false)}
+                    >
+                      <Settings className="mr-2 h-4 w-4" />
+                      Profile Settings
+                    </Link>
+                    <button
+                      onClick={logout}
+                      className="flex items-center w-full px-4 py-2 text-sm text-red-400 hover:bg-red-500/10 cursor-pointer"
+                    >
+                      <LogOut className="mr-2 h-4 w-4" />
+                      Logout
+                    </button>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <Link href="/accounts/login">
+                <Button variant="outline" size="sm" className="cursor-pointer">
+                  Login / Signup
+                </Button>
+              </Link>
+            )}
             
             {/* Mobile Menu Button */}
             <button 
@@ -176,6 +228,4 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
       </main>
     </div>
   );
-};
-
-export default MainLayout;
+}
