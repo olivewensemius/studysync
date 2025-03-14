@@ -1,6 +1,6 @@
 'use client';
 
-import { login } from './actions'
+import { login, loginGoogle, loginDiscord } from './actions'
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -23,7 +23,6 @@ export default function LoginPage() {
   };
 
   const handleSubmit = async (formData: FormData) => {
-
     const result = await login(formData);
     if (result?.error) {
       setError(result.error);
@@ -34,6 +33,35 @@ export default function LoginPage() {
     <div className="flex items-center justify-center min-h-screen">
       <Card className="dark-card p-8 max-w-md w-full">
         <h1 className="text-2xl font-bold mb-6 text-center text-gray-100">Login</h1>
+        
+        <Button
+          type="button"
+          variant="outline"
+          className="w-full mb-4 flex items-center justify-center gap-2 cursor-pointer"
+          onClick={loginGoogle}
+        >
+          <img src="https://www.google.com/favicon.ico" alt="Google" className="w-4 h-4" />
+          Sign in with Google
+        </Button>
+
+        <Button
+          type="button"
+          variant="outline"
+          className="w-full mb-4 flex items-center justify-center gap-2 cursor-pointer"
+          onClick={loginDiscord}
+        >
+         <img src="/discord.svg" alt="Discord" className="w-4 h-4" />
+          Sign in with Discord
+        </Button>
+
+        <div className="relative mb-4">
+          <div className="absolute inset-0 flex items-center">
+            <div className="w-full border-t border-gray-600"></div>
+          </div>
+          <div className="relative flex justify-center text-sm">
+            <span className="text-gray-400 bg-[#1e1e1e] px-2">Or continue with</span>
+          </div>
+        </div>
         
         <form className="space-y-4">
           <div>
