@@ -9,6 +9,7 @@ export interface AvatarProps {
   fallback?: string;
   size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
   shape?: 'circle' | 'rounded';
+  status?: 'online' | 'offline' | 'away' | 'busy' | 'none';
   className?: string;
 }
 
@@ -18,6 +19,7 @@ const Avatar: React.FC<AvatarProps> = ({
   fallback,
   size = 'md',
   shape = 'circle',
+  status = 'none',
   className
 }) => {
   const [imageError, setImageError] = useState(!src);
@@ -34,6 +36,14 @@ const Avatar: React.FC<AvatarProps> = ({
     circle: 'rounded-full',
     rounded: 'rounded-md'
   };
+  
+  const statusColors = {
+    online: 'bg-green-500',
+    offline: 'bg-neutral-400',
+    away: 'bg-yellow-500',
+    busy: 'bg-red-500',
+    none: 'hidden'
+  };
 
   // Generate initials if fallback is not provided
   const getInitials = (name?: string) => {
@@ -46,30 +56,49 @@ const Avatar: React.FC<AvatarProps> = ({
       .toUpperCase();
   };
 
+  // Determine status indicator size based on avatar size
+  const statusSize = size === 'xs' ? 'w-1.5 h-1.5' : 
+                     size === 'sm' ? 'w-2 h-2' : 
+                     size === 'lg' ? 'w-3.5 h-3.5' : 
+                     size === 'xl' ? 'w-4 h-4' : 'w-3 h-3';
+
   return (
-    <div
-      className={cn(
-        'inline-flex items-center justify-center',
-        'bg-secondary-200 text-secondary-800',
-        'overflow-hidden',
-        sizeClasses[size],
-        shapeClasses[shape],
-        className
-      )}
-    >
-      {src && !imageError ? (
-        <Image
-          src={src}
-          alt={alt}
-          width={48}
-          height={48}
-          className="w-full h-full object-cover"
-          onError={() => setImageError(true)}
+    <div className="relative inline-block">
+      <div
+        className={cn(
+          'inline-flex items-center justify-center',
+          'overflow-hidden',
+          'bg-gradient-to-br from-primary-400 to-primary-600 text-white',
+          sizeClasses[size],
+          shapeClasses[shape],
+          'transition-transform hover:scale-105',
+          className
+        )}
+      >
+        {src && !imageError ? (
+          <Image
+            src={src}
+            alt={alt}
+            width={48}
+            height={48}
+            className="w-full h-full object-cover"
+            onError={() => setImageError(true)}
+          />
+        ) : (
+          <span className="font-medium">
+            {fallback ? getInitials(fallback) : '?'}
+          </span>
+        )}
+      </div>
+      
+      {status !== 'none' && (
+        <div 
+          className={cn(
+            'absolute bottom-0 right-0 rounded-full border-2 border-white',
+            statusColors[status],
+            statusSize
+          )} 
         />
-      ) : (
-        <span className="font-medium">
-          {fallback ? getInitials(fallback) : '?'}
-        </span>
       )}
     </div>
   );

@@ -10,10 +10,12 @@ import {
   PieChart, 
   Presentation, 
   ChevronLeft, 
-  ChevronRight 
+  ChevronRight,
+  Sparkles
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { cn } from '@/lib/utils';
 
 const sidebarNavItems = [
   { 
@@ -50,24 +52,26 @@ const Sidebar: React.FC = () => {
 
   return (
     <aside 
-      className={`
-        bg-white border-r border-secondary-100 
-        transition-all duration-300 ease-in-out
-        ${isCollapsed ? 'w-20' : 'w-64'}
-        flex flex-col
-      `}
+      className={cn(
+        'bg-white border-r border-primary-100',
+        'transition-all duration-300 ease-in-out',
+        'flex flex-col h-full',
+        isCollapsed ? 'w-20' : 'w-64',
+        'shadow-md'
+      )}
     >
       {/* Logo and Collapse Button */}
-      <div className="flex items-center justify-between p-4 border-b border-secondary-100">
+      <div className="bg-blue-gradient border-b border-primary-200 p-4 flex items-center justify-between">
         {!isCollapsed && (
           <div className="flex items-center space-x-2">
-            <Presentation className="text-primary-500" size={24} />
-            <span className="text-lg font-bold text-secondary-800">StudySync</span>
+            <Sparkles className="text-white" size={24} />
+            <span className="text-lg font-bold text-white font-display">StudySync</span>
           </div>
         )}
         <Button 
           variant="ghost" 
           size="icon" 
+          className="text-white hover:bg-primary-600/20"
           onClick={() => setIsCollapsed(!isCollapsed)}
         >
           {isCollapsed ? <ChevronRight /> : <ChevronLeft />}
@@ -75,7 +79,7 @@ const Sidebar: React.FC = () => {
       </div>
 
       {/* Navigation Items */}
-      <nav className="flex-1 py-4">
+      <nav className="flex-1 py-4 px-2">
         {sidebarNavItems.map((item) => {
           const Icon = item.icon;
           const isActive = pathname === item.href;
@@ -84,23 +88,38 @@ const Sidebar: React.FC = () => {
             <Link 
               key={item.href} 
               href={item.href}
-              className={`
-                flex items-center p-3 mx-2 rounded-md 
-                transition-colors duration-200
-                ${isActive 
-                  ? 'bg-primary-50 text-primary-600' 
-                  : 'text-secondary-600 hover:bg-secondary-100'}
-                ${isCollapsed ? 'justify-center' : ''}
-              `}
+              className={cn(
+                'flex items-center p-3 rounded-lg mb-1',
+                'transition-all duration-200 group',
+                isActive 
+                  ? 'bg-primary-500 text-white shadow-blue' 
+                  : 'text-neutral-600 hover:bg-primary-50 hover:text-primary-600',
+                isCollapsed ? 'justify-center' : ''
+              )}
             >
-              <Icon size={20} className="mr-3" />
+              <Icon 
+                size={20} 
+                className={cn(
+                  'transition-transform',
+                  !isCollapsed && 'mr-3',
+                  isActive ? 'text-white' : 'text-neutral-500 group-hover:text-primary-500',
+                  'group-hover:scale-110'
+                )} 
+              />
               {!isCollapsed && (
-                <span className="flex-1 text-sm font-medium">
+                <span className={cn(
+                  "flex-1 text-sm font-medium",
+                  isActive ? 'text-white' : 'text-neutral-700'
+                )}>
                   {item.name}
                 </span>
               )}
               {!isCollapsed && item.badge && (
-                <Badge variant="primary" size="sm">
+                <Badge 
+                  variant={isActive ? "secondary" : "primary"} 
+                  size="sm"
+                  className={isActive ? "bg-white text-primary-600" : ""}
+                >
                   {item.badge}
                 </Badge>
               )}
@@ -108,6 +127,16 @@ const Sidebar: React.FC = () => {
           );
         })}
       </nav>
+      
+      {/* Footer */}
+      {!isCollapsed && (
+        <div className="p-4 border-t border-primary-100 mt-auto">
+          <div className="bg-primary-50 rounded-lg p-3 text-xs text-primary-700">
+            <p className="font-medium mb-1">Pro Tip</p>
+            <p>Create study flashcards to boost retention by 70%!</p>
+          </div>
+        </div>
+      )}
     </aside>
   );
 };

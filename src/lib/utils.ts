@@ -2,10 +2,11 @@ import { type ClassValue } from 'clsx';
 import { clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 
+
 // Combine multiple class names with conditional rendering
 export function cn(...inputs: ClassValue[]) {
-  return twMerge(clsx(inputs));
-}
+    return twMerge(clsx(...inputs));
+  }
 
 // Format date to a readable string
 export function formatDate(date: Date | string): string {
