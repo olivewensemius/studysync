@@ -142,7 +142,7 @@ export default function StudySessionDetailPage({ params }: { params: { id: strin
         <div>
           <div className="flex items-center flex-wrap gap-2">
             <h1 className="text-2xl font-bold text-text-primary">{session.title}</h1>
-            <Badge variant={statusBadge.variant} glow={statusBadge.variant === 'accent'}>
+            <Badge variant="primary" glow={statusBadge.variant === 'accent'}>
               {statusBadge.text}
             </Badge>
           </div>
@@ -360,7 +360,7 @@ export default function StudySessionDetailPage({ params }: { params: { id: strin
                 className="bg-card-border/10 border-card-border/30 flex-grow"
               />
               <Button 
-                variant="primary" 
+                variant="accent" 
                 onClick={handleAddComment}
                 disabled={!newComment.trim()}
               >
