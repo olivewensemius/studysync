@@ -95,8 +95,7 @@ const Sidebar: React.FC = () => {
                 isActive 
                   ? 'bg-primary-500 text-white shadow-blue' 
                   : 'text-neutral-600 hover:bg-primary-50 hover:text-primary-600',
-                isCollapsed ? 'justify-center' : '',
-                'relative z-50'
+                isCollapsed ? 'justify-center' : ''
               )}
             >
               <Icon 
