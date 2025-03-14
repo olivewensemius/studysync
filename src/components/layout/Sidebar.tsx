@@ -57,7 +57,8 @@ const Sidebar: React.FC = () => {
         'transition-all duration-300 ease-in-out',
         'flex flex-col h-full',
         isCollapsed ? 'w-20' : 'w-64',
-        'shadow-md'
+        'shadow-md',
+        'relative z-50'
       )}
     >
       {/* Logo and Collapse Button */}
@@ -94,7 +95,8 @@ const Sidebar: React.FC = () => {
                 isActive 
                   ? 'bg-primary-500 text-white shadow-blue' 
                   : 'text-neutral-600 hover:bg-primary-50 hover:text-primary-600',
-                isCollapsed ? 'justify-center' : ''
+                isCollapsed ? 'justify-center' : '',
+                'relative z-50'
               )}
             >
               <Icon 
