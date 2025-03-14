@@ -5,7 +5,7 @@ import React, { useEffect, useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Users, PlusCircle, Edit, Trash2 } from 'lucide-react';
+import { Users, PlusCircle, Expand, Trash2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { fetchStudyGroups } from './actions';
 
@@ -61,7 +61,7 @@ export default function StudyGroupsPage() {
 
               <div className="mt-4 flex space-x-2">
                 <Button variant="outline" size="icon" onClick={() => router.push(`/study-groups/${group.id}`)}>
-                  <Edit className="h-4 w-4" />
+                  <Expand className="h-4 w-4" /> 
                 </Button>
                 <Button variant="destructive" size="icon">
                   <Trash2 className="h-4 w-4" />
