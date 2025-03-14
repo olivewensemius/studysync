@@ -215,7 +215,7 @@ export default function StudySessionsPage() {
                         <p className="text-text-secondary text-sm">{session.subject}</p>
                       </div>
                       <Badge 
-                        variant={statusBadge.variant} 
+                        variant="primary"
                         glow={statusBadge.variant === 'accent'}
                       >
                         {statusBadge.text}
