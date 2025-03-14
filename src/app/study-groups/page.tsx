@@ -53,7 +53,7 @@ export default function StudyGroupsPage() {
               <div className="flex justify-between items-center mb-2">
                 <h2 className="text-lg font-bold">{group.name}</h2>
                 <Badge variant="outline">
-                  <Users className="h-4 w-4 mr-1" /> Members {/* Update when schema for study groups is updated to include members*/}
+                  <Users className="h-4 w-4 mr-1" /> {group.members.length} Members {/* Update when schema for study groups is updated to include members*/}
                 </Badge>
               </div>
 
