@@ -1,3 +1,4 @@
+// src/components/ui/card.tsx
 import React from 'react';
 import { cn } from '@/lib/utils';
 
@@ -5,15 +6,23 @@ import { cn } from '@/lib/utils';
 interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
   header?: React.ReactNode;
   footer?: React.ReactNode;
+  hover?: boolean;
+  glow?: boolean;
+  accent?: boolean;
 }
 
 const Card = React.forwardRef<HTMLDivElement, CardProps>(
-  ({ className, header, footer, children, ...props }, ref) => (
+  ({ className, header, footer, hover = false, glow = false, accent = false, children, ...props }, ref) => (
     <div
       ref={ref}
       className={cn(
         // Base card styling
-        'bg-white border border-secondary-100 rounded-lg shadow-soft',
+        'bg-card-bg border border-card-border rounded-lg overflow-hidden',
+        // Optional hover effect
+        hover && 'transition-all duration-200 hover:translate-y-[-2px]',
+        // Optional glow effect
+        glow && !accent && 'shadow-glow',
+        glow && accent && 'shadow-accent-glow',
         // Allow additional custom classes
         className
       )}
@@ -21,7 +30,7 @@ const Card = React.forwardRef<HTMLDivElement, CardProps>(
     >
       {/* Optional header */}
       {header && (
-        <div className="px-6 py-4 border-b border-secondary-100 bg-secondary-50 rounded-t-lg">
+        <div className="px-6 py-4 border-b border-card-border bg-background/50">
           {header}
         </div>
       )}
@@ -31,7 +40,7 @@ const Card = React.forwardRef<HTMLDivElement, CardProps>(
       
       {/* Optional footer */}
       {footer && (
-        <div className="px-6 py-4 border-t border-secondary-100 bg-secondary-50 rounded-b-lg">
+        <div className="px-6 py-4 border-t border-card-border bg-background/50">
           {footer}
         </div>
       )}
