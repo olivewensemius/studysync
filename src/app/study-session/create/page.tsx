@@ -6,6 +6,8 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+import { createStudySession } from '../actions';
+
 import { 
   Calendar, 
   Clock, 
@@ -19,6 +21,7 @@ import {
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
+
 export default function CreateSessionPage() {
   const router = useRouter();
   
@@ -26,10 +29,11 @@ export default function CreateSessionPage() {
   const [formData, setFormData] = useState({
     title: '',
     subject: '',
-    description: '',
     date: '',
     time: '',
     duration: '60',
+    status: '',
+    description: '',
     location: 'Online',
     locationDetails: '',
   });
@@ -116,7 +120,7 @@ export default function CreateSessionPage() {
   };
   
   // Handle form submission
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     // Validate form
@@ -140,16 +144,32 @@ export default function CreateSessionPage() {
       setErrors(newErrors);
       return;
     }
-    
-    // In a real application, this would send data to the server
-    console.log('Submitting session data:', { 
-      ...formData, 
-      topics, 
-      participants: invitedEmails 
-    });
-    
-    // Redirect to sessions list
-    router.push('/study-sessions');
+
+    try {
+      // Combine date and time
+      const dateTime = new Date(`${formData.date}T${formData.time}`);
+      
+      // Create the study session
+      const sessionData = await createStudySession({
+        title: formData.title,
+        subject: formData.subject,
+        date: dateTime.toISOString(),
+        duration: parseInt(formData.duration),
+        status: 'scheduled', 
+        description: formData.description,
+        location: formData.location,
+        locationDetails: formData.locationDetails,
+        participantEmails: invitedEmails
+      });
+
+      // Redirect to sessions list on success
+      router.push('/study-session');
+    } catch (error) {
+      console.error('Error creating study session:', error);
+      setErrors({
+        submit: 'Failed to create study session. Please try again.'
+      });
+    }
   };
   
   return (
@@ -159,7 +179,7 @@ export default function CreateSessionPage() {
         variant="ghost" 
         size="sm"
         leftIcon={<ChevronLeft className="h-4 w-4" />}
-        onClick={() => router.push('/study-sessions')}
+        onClick={() => router.push('/study-session')}
       >
         Back to Sessions
       </Button>
@@ -468,7 +488,7 @@ export default function CreateSessionPage() {
           <Button
             type="button"
             variant="ghost"
-            onClick={() => router.push('/study-sessions')}
+            onClick={() => router.push('/study-session')}
           >
             Cancel
           </Button>
