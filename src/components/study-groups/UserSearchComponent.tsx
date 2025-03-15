@@ -2,11 +2,18 @@ import React, { useState, useEffect } from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Avatar } from '@/components/ui/avatar';
-import { Search, UserPlus, Check } from 'lucide-react';
+import { Search, UserPlus, Check, AlertCircle } from 'lucide-react';
+
+interface User {
+  id: string;
+  display_name: string;
+  email: string;
+  avatar_url?: string;
+}
 
 interface UserSearchProps {
   groupId: string;
-  onInviteUser: (userId: string) => Promise<any>;
+  onInviteUser: (userId: string) => Promise<boolean>;
   existingMembers?: string[];
 }
 
@@ -16,15 +23,17 @@ const UserSearchComponent: React.FC<UserSearchProps> = ({
   existingMembers = [] 
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
-  const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [searchResults, setSearchResults] = useState<User[]>([]);
   const [loading, setLoading] = useState(false);
   const [invitingUsers, setInvitingUsers] = useState<{[key: string]: boolean}>({});
   const [invitedUsers, setInvitedUsers] = useState<string[]>([]);
   const [error, setError] = useState('');
+  const [noResults, setNoResults] = useState(false);
 
   useEffect(() => {
     if (searchQuery.length < 2) {
       setSearchResults([]);
+      setNoResults(false);
       return;
     }
 
@@ -37,23 +46,29 @@ const UserSearchComponent: React.FC<UserSearchProps> = ({
 
   const searchUsers = async (query: string) => {
     setLoading(true);
+    setError('');
+    setNoResults(false);
+    
     try {
       const response = await fetch(`/api/users/search?q=${encodeURIComponent(query)}`);
+      
       if (!response.ok) {
-        throw new Error('Failed to search users');
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to search users');
       }
       
       const data = await response.json();
       
       // Filter out users who are already members or already invited
-      const filteredResults = data.filter((user: any) => 
+      const filteredResults = data.filter((user: User) => 
         !existingMembers.includes(user.id) && !invitedUsers.includes(user.id)
       );
       
       setSearchResults(filteredResults);
-    } catch (error) {
+      setNoResults(filteredResults.length === 0);
+    } catch (error: any) {
       console.error('Error searching users:', error);
-      setError('Failed to search for users');
+      setError(error.message || 'Failed to search for users');
     } finally {
       setLoading(false);
     }
@@ -64,10 +79,14 @@ const UserSearchComponent: React.FC<UserSearchProps> = ({
     setError('');
     
     try {
-      await onInviteUser(userId);
-      setInvitedUsers(prev => [...prev, userId]);
-      // Remove from search results
-      setSearchResults(prev => prev.filter(user => user.id !== userId));
+      const success = await onInviteUser(userId);
+      
+      if (success) {
+        // Add to invited users list
+        setInvitedUsers(prev => [...prev, userId]);
+        // Remove from search results
+        setSearchResults(prev => prev.filter(user => user.id !== userId));
+      }
     } catch (err: any) {
       setError(err.message || 'Failed to invite user');
     } finally {
@@ -89,7 +108,8 @@ const UserSearchComponent: React.FC<UserSearchProps> = ({
       </div>
 
       {error && (
-        <div className="p-2 text-red-500 bg-red-500/10 border border-red-500/30 rounded-md text-sm">
+        <div className="p-2 text-red-500 bg-red-500/10 border border-red-500/30 rounded-md text-sm flex items-center">
+          <AlertCircle className="h-4 w-4 mr-2" />
           {error}
         </div>
       )}
@@ -108,7 +128,6 @@ const UserSearchComponent: React.FC<UserSearchProps> = ({
                 <div className="flex items-center">
                   <Avatar 
                     fallback={user.display_name?.charAt(0) || 'U'} 
-                    size="sm"
                     className="mr-3"
                   />
                   <div>
@@ -119,13 +138,17 @@ const UserSearchComponent: React.FC<UserSearchProps> = ({
                 <Button
                   variant="outline"
                   size="sm"
-                  leftIcon={invitingUsers[user.id] ? undefined : <UserPlus className="h-4 w-4" />}
                   onClick={() => handleInvite(user.id)}
                   disabled={invitingUsers[user.id]}
                 >
                   {invitingUsers[user.id] ? (
                     <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary-500"></div>
-                  ) : 'Invite'}
+                  ) : (
+                    <>
+                      <UserPlus className="h-4 w-4 mr-1" />
+                      Invite
+                    </>
+                  )}
                 </Button>
               </div>
             ))}
@@ -133,7 +156,7 @@ const UserSearchComponent: React.FC<UserSearchProps> = ({
         </div>
       )}
 
-      {searchQuery.length >= 2 && searchResults.length === 0 && !loading && (
+      {searchQuery.length >= 2 && noResults && !loading && (
         <div className="text-center p-4 text-text-secondary">
           No users found matching '{searchQuery}'
         </div>
@@ -141,12 +164,15 @@ const UserSearchComponent: React.FC<UserSearchProps> = ({
 
       {invitedUsers.length > 0 && (
         <div className="mt-4">
-          <h3 className="text-sm font-medium text-text-secondary mb-2">Invited in this session:</h3>
+          <h3 className="text-sm font-medium text-text-secondary mb-2">Recently invited:</h3>
           <div className="flex flex-wrap gap-2">
             {invitedUsers.map(userId => {
-              const user = searchResults.find(u => u.id === userId) || { display_name: 'User' };
+              const user = searchResults.find(u => u.id === userId) || { 
+                id: userId,
+                display_name: 'User'
+              };
               return (
-                <div key={userId} className="flex items-center bg-primary-500/20 text-primary-400 rounded-full px-3 py-1 text-sm">
+                <div key={userId} className="flex items-center bg-primary-500/20 text-primary-600 rounded-full px-3 py-1 text-sm">
                   <Check className="h-3.5 w-3.5 mr-1" />
                   <span>{user.display_name}</span>
                 </div>

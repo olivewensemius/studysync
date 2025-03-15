@@ -28,8 +28,10 @@ export default function StudyGroupDetailPage() {
   const [members, setMembers] = useState<any[]>([]);
   const [loadingMembers, setLoadingMembers] = useState(false);
   
-  // Add invite form state
+  // Invite functionality
   const [showInviteForm, setShowInviteForm] = useState(false);
+  const [inviteSuccess, setInviteSuccess] = useState<string | null>(null);
+  const [inviteError, setInviteError] = useState<string | null>(null);
 
   useEffect(() => {
     const loadGroup = async () => {
@@ -93,13 +95,18 @@ export default function StudyGroupDetailPage() {
     }
   };
 
-  // Add this handler function for inviting users
+  // Handle user invitation with feedback
   const handleInviteUser = async (userId: string) => {
+    setInviteSuccess(null);
+    setInviteError(null);
+    
     try {
       await inviteUserToGroup(id, userId);
+      setInviteSuccess("User invited successfully!");
       return true;
-    } catch (err) {
+    } catch (err: any) {
       console.error("Error inviting user:", err);
+      setInviteError(err.message || "Failed to invite user");
       return false;
     }
   };
@@ -114,7 +121,7 @@ export default function StudyGroupDetailPage() {
         <div className="flex justify-between items-center">
           <h1 className="text-2xl font-bold text-text-primary">{group.name}</h1>
           <div className="flex gap-2">
-            {/* Add invite button for group creators */}
+            {/* Invite button for group creators */}
             {group.isCreator && (
               <Button 
                 variant="outline" 
@@ -138,7 +145,7 @@ export default function StudyGroupDetailPage() {
 
         <p className="text-text-secondary">{group.description}</p>
 
-        {/* Add the invite form section */}
+        {/* Invite form */}
         {showInviteForm && (
           <div className="p-4 border border-card-border rounded-md">
             <div className="flex justify-between items-center mb-4">
@@ -150,6 +157,19 @@ export default function StudyGroupDetailPage() {
                 <X className="h-5 w-5" />
               </button>
             </div>
+            
+            {inviteSuccess && (
+              <div className="mb-4 p-2 text-sm text-green-600 bg-green-100 border border-green-400 rounded-md">
+                {inviteSuccess}
+              </div>
+            )}
+            
+            {inviteError && (
+              <div className="mb-4 p-2 text-sm text-red-600 bg-red-100 border border-red-400 rounded-md">
+                {inviteError}
+              </div>
+            )}
+            
             <UserSearchComponent 
               groupId={id} 
               onInviteUser={handleInviteUser}
@@ -190,8 +210,9 @@ export default function StudyGroupDetailPage() {
         </div>
       </Card>
 
+      {/* Members modal */}
       {showMembers && (
-        <div className="fixed inset-0 flex items-center justify-center bg-gray-800 bg-opacity-50">
+        <div className="fixed inset-0 flex items-center justify-center bg-gray-800 bg-opacity-50 z-50">
           <div className="bg-card-bg p-6 rounded-lg max-w-md w-full shadow-lg border border-card-border">
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-lg font-bold text-text-primary">Group Members</h2>
