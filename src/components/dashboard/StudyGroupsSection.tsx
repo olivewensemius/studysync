@@ -60,13 +60,11 @@ export default function DashboardStudyGroups() {
                 {group.members.length > 3 && (
                   <span className="text-xs text-text-secondary ml-1">+{group.members.length - 3} more</span>
                 )}
-                <Link href={`/study-groups/${group.id}`} className="ml-auto">
-                  <Button variant="outline" size="sm">View</Button>
-                </Link>
+
               </div>
             </div>
           ))}
-          <Link href="/study-groups/create">
+          <Link href="/study-groups">
             <Button variant="ghost" className="w-full border border-dashed border-card-border mt-3 py-2" leftIcon={<PlusCircle className="h-4 w-4" />}>Create New Group</Button>
           </Link>
         </div>
