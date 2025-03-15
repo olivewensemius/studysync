@@ -18,6 +18,8 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Avatar } from '@/components/ui/avatar';
 import Link from 'next/link';
+import StudyGroupsSection from "@/app/dashboard/StudyGroupsSection";
+import FlashCardsSection from "@/app/dashboard/FlashCardsSection";
 
 // Mock data
 const upcomingSessions = [
@@ -267,113 +269,10 @@ export default function DashboardPage() {
       {/* Flashcards and Study Groups */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Active Flashcards */}
-        <Card className="dark-card">
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-lg font-bold text-text-primary">Active Flashcards</h2>
-            <Link href="/flashcards">
-              <Button variant="ghost" size="sm" rightIcon={<ChevronRight className="h-4 w-4" />}>
-                View All
-              </Button>
-            </Link>
-          </div>
-
-          <div className="space-y-3">
-            {activeFlashcards.map((deck) => (
-              <div 
-                key={deck.id} 
-                className="p-3 rounded-lg border border-card-border/30 hover:border-primary-500/30 transition-colors"
-              >
-                <div className="flex justify-between items-start">
-                  <h3 className="font-medium text-text-primary">{deck.title}</h3>
-                  <Badge variant="outline" size="sm">
-                    {deck.totalCards} cards
-                  </Badge>
-                </div>
-                <div className="mt-2">
-                  <div className="flex justify-between text-text-secondary text-xs mb-1">
-                    <span>Progress</span>
-                    <span>{deck.progress}%</span>
-                  </div>
-                  <div className="w-full h-1.5 bg-card-border/50 rounded-full overflow-hidden">
-                    <div 
-                      className="h-full bg-primary-500 rounded-full" 
-                      style={{ width: `${deck.progress}%` }}
-                    ></div>
-                  </div>
-                </div>
-                <div className="flex items-center justify-between mt-3">
-                  <span className="text-text-secondary text-xs">Last studied {deck.lastStudied}</span>
-                  <Link href={`/flashcards/${deck.id}`}>
-                    <Button variant="outline" size="sm">
-                      Study
-                    </Button>
-                  </Link>
-                </div>
-              </div>
-            ))}
-
-            <Link href="/flashcards/create">
-              <Button variant="ghost" className="w-full border border-dashed border-card-border mt-3 py-2" leftIcon={<PlusCircle className="h-4 w-4" />}>
-                Create New Flashcards
-              </Button>
-            </Link>
-          </div>
-        </Card>
+        <FlashCardsSection />
 
         {/* Study Groups */}
-        <Card className="dark-card">
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-lg font-bold text-text-primary">My Study Groups</h2>
-            <Link href="/study-groups">
-              <Button variant="ghost" size="sm" rightIcon={<ChevronRight className="h-4 w-4" />}>
-                View All
-              </Button>
-            </Link>
-          </div>
-
-          <div className="space-y-3">
-            {studyGroups.map((group) => (
-              <div 
-                key={group.id} 
-                className="p-3 rounded-lg border border-card-border/30 hover:border-primary-500/30 transition-colors"
-              >
-                <div className="flex justify-between items-start">
-                  <h3 className="font-medium text-text-primary">{group.name}</h3>
-                  <Badge 
-                    variant={group.activity === 'high' ? 'success' : 'warning'} 
-                    size="sm"
-                  >
-                    {group.activity} activity
-                  </Badge>
-                </div>
-                <div className="flex items-center mt-2">
-                  <div className="flex -space-x-2">
-                    {Array.from({ length: Math.min(3, 3) }).map((_, i) => (
-                      <Avatar 
-                        key={i}
-                        fallback={`M${i+1}`}
-                        size="xs"
-                        className="border border-card-bg"
-                      />
-                    ))}
-                  </div>
-                  <span className="text-xs text-text-secondary ml-1">{group.members} members</span>
-                  <Link href={`/study-groups/${group.id}`} className="ml-auto">
-                    <Button variant="outline" size="sm">
-                      View
-                    </Button>
-                  </Link>
-                </div>
-              </div>
-            ))}
-
-            <Link href="/study-groups/create">
-              <Button variant="ghost" className="w-full border border-dashed border-card-border mt-3 py-2" leftIcon={<PlusCircle className="h-4 w-4" />}>
-                Create New Group
-              </Button>
-            </Link>
-          </div>
-        </Card>
+        <StudyGroupsSection />
       </div>
 
       {/* Study Tip Banner */}
