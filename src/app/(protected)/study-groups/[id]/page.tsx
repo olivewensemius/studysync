@@ -6,8 +6,10 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar } from "@/components/ui/avatar";
-import { Users, X, Edit3, ArrowLeft } from "lucide-react";
+import { Users, X, Edit3, ArrowLeft, UserPlus } from "lucide-react";
 import { fetchStudyGroupById, fetchGroupMembers, joinStudyGroup, leaveStudyGroup } from "./actions";
+import { inviteUserToGroup } from "../actions";
+import UserSearchComponent from "@/components/study-groups/UserSearchComponent";
 
 export default function StudyGroupDetailPage() {
   const router = useRouter();
@@ -25,6 +27,9 @@ export default function StudyGroupDetailPage() {
   const [showMembers, setShowMembers] = useState(false);
   const [members, setMembers] = useState<any[]>([]);
   const [loadingMembers, setLoadingMembers] = useState(false);
+  
+  // Add invite form state
+  const [showInviteForm, setShowInviteForm] = useState(false);
 
   useEffect(() => {
     const loadGroup = async () => {
@@ -88,6 +93,17 @@ export default function StudyGroupDetailPage() {
     }
   };
 
+  // Add this handler function for inviting users
+  const handleInviteUser = async (userId: string) => {
+    try {
+      await inviteUserToGroup(id, userId);
+      return true;
+    } catch (err) {
+      console.error("Error inviting user:", err);
+      return false;
+    }
+  };
+
   if (loading) return <div className="p-8">Loading...</div>;
   if (error) return <div className="p-8">Error: {error}</div>;
   if (!group) return <div className="p-8">Group not found.</div>;
@@ -97,14 +113,50 @@ export default function StudyGroupDetailPage() {
       <Card className="p-6 max-w-3xl w-full space-y-6 shadow-lg border border-card-border">
         <div className="flex justify-between items-center">
           <h1 className="text-2xl font-bold text-text-primary">{group.name}</h1>
-          {group.isCreator && (
-            <Button variant="outline" leftIcon={<Edit3 className="h-4 w-4" />} onClick={() => router.push(`/study-groups/${group.id}/edit`)}>
-              Edit
-            </Button>
-          )}
+          <div className="flex gap-2">
+            {/* Add invite button for group creators */}
+            {group.isCreator && (
+              <Button 
+                variant="outline" 
+                onClick={() => setShowInviteForm(!showInviteForm)}
+              >
+                <UserPlus className="h-4 w-4 mr-2" />
+                Invite
+              </Button>
+            )}
+            {group.isCreator && (
+              <Button 
+                variant="outline" 
+                onClick={() => router.push(`/study-groups/${group.id}/edit`)}
+              >
+                <Edit3 className="h-4 w-4 mr-2" />
+                Edit
+              </Button>
+            )}
+          </div>
         </div>
 
         <p className="text-text-secondary">{group.description}</p>
+
+        {/* Add the invite form section */}
+        {showInviteForm && (
+          <div className="p-4 border border-card-border rounded-md">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-medium">Invite Users</h3>
+              <button 
+                onClick={() => setShowInviteForm(false)}
+                className="text-text-secondary hover:text-text-primary"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+            <UserSearchComponent 
+              groupId={id} 
+              onInviteUser={handleInviteUser}
+              existingMembers={group.members}
+            />
+          </div>
+        )}
 
         <Badge
           variant="outline"
@@ -122,7 +174,10 @@ export default function StudyGroupDetailPage() {
         {leaveError && <div className="text-red-500">{leaveError}</div>}
 
         <div className="flex justify-between gap-2">
-          <Button variant="ghost" leftIcon={<ArrowLeft className="h-4 w-4" />} onClick={() => router.push("/study-groups")}>Back to Groups</Button>
+          <Button variant="ghost" onClick={() => router.push("/study-groups")}>
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Back to Groups
+          </Button>
           {group.isMember ? (
             <Button variant="destructive" onClick={handleLeaveGroup} disabled={leaving}>
               {leaving ? "Leaving..." : "Leave Group"}
@@ -152,7 +207,7 @@ export default function StudyGroupDetailPage() {
               <ul className="space-y-2">
                 {members.map(member => (
                   <li key={member.id} className="p-2 border border-card-border rounded-lg flex items-center gap-3">
-                    <Avatar fallback={member.display_name.charAt(0)} size="sm" className="border border-card-bg" />
+                    <Avatar fallback={member.display_name.charAt(0)} />
                     <div>
                       <p className="font-semibold text-text-primary">{member.display_name}</p>
                       <p className="text-sm text-text-secondary">{member.email}</p>
