@@ -1,4 +1,4 @@
--- new user
+-- new user 
 create or replace function handle_new_user()
 returns trigger as $$
 begin
@@ -11,3 +11,5 @@ $$ language plpgsql security definer;
 create trigger on_auth_user_created
 after insert on auth.users
 for each row execute procedure handle_new_user();
+
+-- both of these functions are just for reference :)
