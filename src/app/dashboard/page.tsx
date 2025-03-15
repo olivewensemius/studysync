@@ -21,20 +21,11 @@ import Link from 'next/link';
 import StudyGroupsSection from "@/app/dashboard/StudyGroupsSection";
 import FlashCardsSection from "@/app/dashboard/FlashCardsSection";
 import StudySessionSection from "@/app/dashboard/StudySessionSection";
+import DashboardHeader from "@/app/dashboard/DashboardHeaderSection";
+import RecentActivitySection from "@/app/dashboard/RecentActivitySection";
+import StatsCardsSection from "@/app/dashboard/StatsCardSection";
 
 // Mock data
-const upcomingSessions = [
-  { id: 1, title: 'Advanced Mathematics', date: '2025-03-17T14:00:00', duration: 90, participants: 5, subject: 'Mathematics' },
-  { id: 2, title: 'Algorithm Design', date: '2025-03-18T10:30:00', duration: 60, participants: 3, subject: 'Computer Science' },
-  { id: 3, title: 'Organic Chemistry Review', date: '2025-03-20T16:00:00', duration: 120, participants: 4, subject: 'Chemistry' },
-];
-
-const activeFlashcards = [
-  { id: 1, title: 'Calculus Formulas', totalCards: 48, progress: 68, lastStudied: '2 days ago' },
-  { id: 2, title: 'Python Programming', totalCards: 35, progress: 42, lastStudied: '5 days ago' },
-  { id: 3, title: 'Spanish Vocabulary', totalCards: 120, progress: 23, lastStudied: '1 day ago' },
-];
-
 const studyGroups = [
   { id: 1, name: 'Computer Science Majors', members: 12, activity: 'high' },
   { id: 2, name: 'Pre-Med Study Group', members: 8, activity: 'medium' },
@@ -68,74 +59,10 @@ export default function DashboardPage() {
   return (
     <div className="space-y-6">
       {/* Header with greeting and overview */}
-      <div className="flex justify-between items-start">
-        <div>
-          <h1 className="text-2xl font-bold text-text-primary">{greeting}, {user.name}</h1>
-          <p className="text-text-secondary mt-1">Here's your study overview for today</p>
-        </div>
-        <Button
-          variant="outline"
-          leftIcon={<Calendar className="h-4 w-4" />}
-        >
-          March 16, 2025
-        </Button>
-      </div>
+      <DashboardHeader />
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card className="dark-card">
-          <div className="flex items-center">
-            <div className="p-3 rounded-full bg-primary-500/20 mr-4">
-              <Star className="text-primary-400" size={20} />
-            </div>
-            <div>
-              <p className="text-text-secondary text-sm">Study Streak</p>
-              <p className="text-text-primary text-xl font-bold">{user.studyStreak} days</p>
-            </div>
-          </div>
-        </Card>
-
-        <Card className="dark-card">
-          <div className="flex items-center">
-            <div className="p-3 rounded-full bg-primary-500/20 mr-4">
-              <Clock className="text-primary-400" size={20} />
-            </div>
-            <div>
-              <p className="text-text-secondary text-sm">Total Study Time</p>
-              <p className="text-text-primary text-xl font-bold">{user.totalHours} hours</p>
-            </div>
-          </div>
-        </Card>
-
-        <Card className="dark-card">
-          <div className="flex items-center">
-            <div className="p-3 rounded-full bg-primary-500/20 mr-4">
-              <BarChart3 className="text-primary-400" size={20} />
-            </div>
-            <div>
-              <p className="text-text-secondary text-sm">Weekly Goal</p>
-              <div className="flex items-center">
-                <p className="text-text-primary text-xl font-bold mr-2">75%</p>
-                <div className="w-20 h-2 bg-card-border/50 rounded-full overflow-hidden">
-                  <div className="h-full bg-primary-500 rounded-full" style={{ width: `${user.weeklyGoal}%` }}></div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </Card>
-
-        <Card className="dark-card">
-          <div className="flex items-center">
-            <div className="p-3 rounded-full bg-primary-500/20 mr-4">
-              <Users className="text-primary-400" size={20} />
-            </div>
-            <div>
-              <p className="text-text-secondary text-sm">Study Groups</p>
-              <p className="text-text-primary text-xl font-bold">{studyGroups.length} active</p>
-            </div>
-          </div>
-        </Card>
-      </div>
+      <StatsCardsSection />
 
       {/* Main Content */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -143,54 +70,7 @@ export default function DashboardPage() {
         <StudySessionSection />
 
         {/* Activity Feed */}
-        <Card className="dark-card">
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-lg font-bold text-text-primary">Recent Activity</h2>
-          </div>
-
-          <div className="space-y-4">
-            {recentActivity.map((activity, index) => {
-              let Icon = BookOpen;
-              let iconColor = "text-primary-400";
-              let bgColor = "bg-primary-500/20";
-              
-              if (activity.type === 'flashcard') {
-                Icon = Star;
-                iconColor = "text-yellow-400";
-                bgColor = "bg-yellow-500/20";
-              } else if (activity.type === 'group') {
-                Icon = Users;
-                iconColor = "text-accent-400";
-                bgColor = "bg-accent-500/20";
-              }
-
-              return (
-                <div key={index} className="flex items-start">
-                  <div className={`p-2 rounded-full ${bgColor} mr-3`}>
-                    <Icon className={iconColor} size={16} />
-                  </div>
-                  <div>
-                    <p className="text-text-primary text-sm">
-                      You {activity.action} <span className="font-medium">{activity.target}</span>
-                    </p>
-                    <p className="text-text-secondary text-xs">
-                      {activity.time}
-                    </p>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-
-          <div className="mt-4 pt-4 border-t border-card-border">
-            <Link href="/analytics">
-              <Button variant="ghost" size="sm" className="w-full justify-between">
-                View all activity
-                <ChevronRight className="h-4 w-4" />
-              </Button>
-            </Link>
-          </div>
-        </Card>
+        <RecentActivitySection />
       </div>
 
       {/* Flashcards and Study Groups */}
