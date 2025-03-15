@@ -27,7 +27,10 @@ import { parseFileContent } from '@/utils/file-parser';
 export default function NotesUploadGenerator() {
   const router = useRouter();
   const params = useParams();
-  const setId = params.setId as string;
+  
+  const setId = params['set-id'] as string;
+  console.log("Using set ID from URL params:", setId, params);
+  
   const fileInputRef = useRef<HTMLInputElement>(null);
   
   // State
