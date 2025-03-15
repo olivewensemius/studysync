@@ -75,7 +75,6 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
     fetchUser();
   }, [pathname]);
 
-console.log(userData)
 
   return (
     <div className="min-h-screen bg-background text-foreground">
