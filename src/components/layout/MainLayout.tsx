@@ -147,7 +147,7 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
                 {showProfileMenu && (
                   <div className="absolute bg-[#333333] right-0 mt-2 w-48 bg-card-bg border border-card-border rounded-md shadow-lg py-1 z-50">
                     <Link 
-                      href="/profile" 
+                      href="/accounts/settings" 
                       className="flex items-center px-4 py-2 text-sm text-gray-200 hover:bg-white/10 transition-colors duration-200"
                       onClick={() => setShowProfileMenu(false)}
                     >
