@@ -19,16 +19,16 @@ export async function signup(formData: FormData) {
       options: {
         data: {
           display_name: data.display_name
-
-        }
+        },
+        emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/auth/callback`
       }
     })
   
     if (error) {
       redirect('/error')
     }
-    console.log('success')
+    
+    // Redirect to confirmation page instead of dashboard
     revalidatePath('/', 'layout')
-    redirect('/')
+    redirect('/accounts/confirm-email')
   }
-
