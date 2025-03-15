@@ -35,7 +35,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
               // Base input styles
               'block w-full px-3 py-2 border rounded-md',
               // Default state
-              'text-secondary-900 bg-white placeholder-secondary-500',
+              'text-black bg-white placeholder-secondary-500',
               'focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500',
               
               // Variant-specific styles

@@ -12,9 +12,11 @@ import {
   Tag, 
   ChevronLeft, 
   Trash2,
-  X
+  X,
+  Loader2
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { createFlashcardSet } from '../actions';
 
 export default function CreateFlashcardSetPage() {
   const router = useRouter();
@@ -29,6 +31,10 @@ export default function CreateFlashcardSetPage() {
   // Tags state
   const [tags, setTags] = useState<string[]>([]);
   const [newTag, setNewTag] = useState('');
+
+  // UI states
+  const [isCreating, setIsCreating] = useState(false);
+  const [newSetId, setNewSetId] = useState<string | null>(null);
 
   // Errors state
   const [errors, setErrors] = useState<{[key: string]: string}>({});
@@ -81,7 +87,7 @@ export default function CreateFlashcardSetPage() {
   };
 
   // Handle form submission
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     // Validate form
@@ -101,15 +107,100 @@ export default function CreateFlashcardSetPage() {
       return;
     }
 
-    // TODO: Implement actual submission logic
-    console.log('Submitting flashcard set:', {
-      ...setDetails,
-      tags
-    });
-
-    // Redirect to flashcards page or the new set
-    router.push('/flashcards');
+    // Submit to the database
+    setIsCreating(true);
+    try {
+      const newSet = await createFlashcardSet({
+        ...setDetails,
+        tags: tags.length > 0 ? tags : undefined
+      });
+      
+      setNewSetId(newSet.id);
+      
+      // Show "Add Cards" options
+      setIsCreating(false);
+    } catch (err: any) {
+      setErrors({ submit: err.message || 'Failed to create flashcard set' });
+      setIsCreating(false);
+    }
   };
+
+  // If set is created, show card creation options
+  if (newSetId) {
+    return (
+      <div className="space-y-6">
+        <Button 
+          variant="ghost" 
+          size="sm"
+          leftIcon={<ChevronLeft className="h-4 w-4" />}
+          onClick={() => router.push('/flashcards')}
+        >
+          Back to Flashcards
+        </Button>
+
+        <div className="bg-green-500/10 border border-green-500/30 p-4 rounded-md text-green-400 mb-6">
+          Flashcard set created successfully! How would you like to add cards?
+        </div>
+
+        <Card className="dark-card p-6">
+          <h2 className="text-lg font-bold text-text-primary mb-6">Add Cards to Your Set</h2>
+          
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <Card className="dark-card hover:border-primary-500/30 cursor-pointer p-6" 
+                  onClick={() => router.push(`/flashcards/${newSetId}/add-card`)}>
+              <div className="flex flex-col items-center text-center">
+                <PlusCircle className="h-12 w-12 text-primary-400 mb-4" />
+                <h3 className="font-medium text-text-primary text-lg mb-2">Add Cards Manually</h3>
+                <p className="text-text-secondary">
+                  Create flashcards one by one with custom content
+                </p>
+              </div>
+            </Card>
+            
+            <Card className="dark-card hover:border-primary-500/30 cursor-pointer p-6"
+                  onClick={() => router.push(`/flashcards/${newSetId}/notes-upload`)}>
+              <div className="flex flex-col items-center text-center">
+                <BookOpen className="h-12 w-12 text-primary-400 mb-4" />
+                <h3 className="font-medium text-text-primary text-lg mb-2">Upload Class Notes</h3>
+                <p className="text-text-secondary">
+                  Generate flashcards from your lecture notes or study materials
+                </p>
+              </div>
+            </Card>
+            
+            <Card className="dark-card hover:border-primary-500/30 cursor-pointer p-6"
+                  onClick={() => router.push(`/flashcards/${newSetId}/ai-generate`)}>
+              <div className="flex flex-col items-center text-center">
+                <div className="h-12 w-12 text-primary-400 mb-4 flex items-center justify-center">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-12 h-12">
+                    <path d="M12 2v8"></path>
+                    <path d="m4.93 10.93 1.41 1.41"></path>
+                    <path d="M2 18h2"></path>
+                    <path d="M20 18h2"></path>
+                    <path d="m19.07 10.93-1.41 1.41"></path>
+                    <path d="M20.285 14.57C19.166 12.22 17.15 11 12 11c-5.15 0-7.166 1.22-8.285 3.57C2.86 16.4 5.05 20 12 20c6.95 0 9.14-3.6 8.285-5.43Z"></path>
+                  </svg>
+                </div>
+                <h3 className="font-medium text-text-primary text-lg mb-2">AI Generation</h3>
+                <p className="text-text-secondary">
+                  Use AI to automatically generate flashcards on any topic
+                </p>
+              </div>
+            </Card>
+          </div>
+          
+          <div className="flex justify-center mt-6">
+            <Button 
+              variant="ghost"
+              onClick={() => router.push('/flashcards')}
+            >
+              Go Back to All Flashcards
+            </Button>
+          </div>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -127,9 +218,15 @@ export default function CreateFlashcardSetPage() {
         Create New Flashcard Set
       </h1>
 
+      {errors.submit && (
+        <div className="bg-red-500/10 border border-red-500/30 p-4 rounded-md text-red-400">
+          {errors.submit}
+        </div>
+      )}
+
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Basic Set Information */}
-        <Card className="dark-card">
+        <Card className="dark-card p-6">
           <h2 className="text-lg font-bold text-text-primary mb-6">
             Set Details
           </h2>
@@ -198,7 +295,7 @@ export default function CreateFlashcardSetPage() {
         </Card>
 
         {/* Tags */}
-        <Card className="dark-card">
+        <Card className="dark-card p-6">
           <h2 className="text-lg font-bold text-text-primary mb-6">
             Tags
           </h2>
@@ -262,14 +359,21 @@ export default function CreateFlashcardSetPage() {
             type="button"
             variant="ghost"
             onClick={() => router.push('/flashcards')}
+            disabled={isCreating}
           >
             Cancel
           </Button>
           <Button
             type="submit"
             variant="default"
+            disabled={isCreating}
           >
-            Create Flashcard Set
+            {isCreating ? (
+              <>
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                Creating...
+              </>
+            ) : 'Create Flashcard Set'}
           </Button>
         </div>
       </form>
