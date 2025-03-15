@@ -20,6 +20,7 @@ import {
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { generateAnalyticsPDF } from './export_func';
 
 // Mock data for analytics
 const topSubjects = [
@@ -49,6 +50,23 @@ const weeklyActivity = [
 
 export default function AnalyticsPage() {
   const [timeframe, setTimeframe] = useState('weekly');
+  const [isExporting, setIsExporting] = useState(false);
+  const [exportSuccess, setExportSuccess] = useState(false);
+
+
+  const handleExport = async () => {
+    setIsExporting(true);
+    try {
+      const doc = generateAnalyticsPDF(productivityMetrics, weeklyActivity, topSubjects);
+      doc.save(`studysync-report-${Date.now()}.pdf`);
+      setExportSuccess(true);
+      setTimeout(() => setExportSuccess(false), 3000);
+    } catch (error) {
+      console.error('Export failed:', error);
+    } finally {
+      setIsExporting(false);
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -69,10 +87,12 @@ export default function AnalyticsPage() {
             {/* Dropdown menu would go here */}
           </div>
           <Button 
-            variant="outline" 
-            leftIcon={<Download className="h-4 w-4" />}
+            variant="glow" 
+            onClick={handleExport}
+            disabled={isExporting}
+            className={isExporting ? 'opacity-75 cursor-not-allowed' : ''}
           >
-            Export
+            {isExporting ? 'Exporting...' : 'Export'}
           </Button>
         </div>
       </div>
@@ -307,9 +327,14 @@ export default function AnalyticsPage() {
             <Button variant="outline" className="border-primary-700 text-text-primary">
               Schedule Report
             </Button>
-            <Button variant="glow">
-              Export Now
-            </Button>
+            <Button 
+                variant="glow" 
+                onClick={handleExport}
+                disabled={isExporting}
+                className={isExporting ? 'opacity-75 cursor-not-allowed' : ''}
+              >
+                {isExporting ? 'Exporting...' : 'Export Now'}
+              </Button>
           </div>
         </div>
       </Card>
