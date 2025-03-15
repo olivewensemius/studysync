@@ -85,22 +85,65 @@ export async function createFlashcard(data: {
 }) {
   const supabase = await createClient()
   
-  const { data: newCard, error } = await supabase
-    .from('flashcards')
-    .insert([{
-      ...data,
-      difficulty: data.difficulty || 'medium'
-    }])
-    .select()
-  
-  if (error) {
-    console.error("Error creating flashcard:", error)
-    throw new Error('Failed to create flashcard')
+  try {
+    // Get current user
+    const { data: { user }, error: userError } = await supabase.auth.getUser()
+    
+    if (userError || !user) {
+      console.error("Authentication error:", userError);
+      throw new Error('User not authenticated')
+    }
+    
+    // Validate set ID
+    console.log("Creating flashcard for set ID:", data.set_id);
+    
+    if (!data.set_id || data.set_id === 'undefined') {
+      console.error("Invalid set ID:", data.set_id);
+      throw new Error('Invalid set ID');
+    }
+    
+    // Verify set exists and user has access
+    const { data: setData, error: setError } = await supabase
+      .from('flashcard_sets')
+      .select('id')
+      .eq('id', data.set_id)
+      .single();
+    
+    if (setError) {
+      console.error("Error verifying set ID:", setError);
+      throw new Error(`Set with ID ${data.set_id} not found or access denied`);
+    }
+    
+    // Prepare flashcard data
+    const flashcardData = {
+      set_id: data.set_id,
+      user_id: user.id,
+      front: data.front,
+      back: data.back,
+      difficulty: data.difficulty || 'medium',
+      mastered: false
+    };
+    
+    console.log("Prepared flashcard data:", flashcardData);
+    
+    // Insert the flashcard
+    const { data: newCard, error } = await supabase
+      .from('flashcards')
+      .insert([flashcardData])
+      .select()
+    
+    if (error) {
+      console.error("Error creating flashcard:", error)
+      throw new Error('Failed to create flashcard')
+    }
+    
+    console.log("Flashcard created successfully:", newCard[0]);
+    return newCard[0]
+  } catch (error) {
+    console.error("Error in createFlashcard:", error);
+    throw error;
   }
-  
-  return newCard[0]
 }
-
 // Update a flashcard's mastery status
 export async function updateFlashcardMastery(id: string, mastered: boolean) {
   const supabase = await createClient()
@@ -347,7 +390,74 @@ async function ensureUserProfile() {
   return await createUserProfile(user.id);
 }
 
-// Update your saveBatchFlashcards function with this version
+export async function saveFlashcard(data: {
+  set_id: string,
+  front: string,
+  back: string,
+  difficulty?: 'easy' | 'medium' | 'hard'
+}) {
+  const supabase = await createClient();
+  
+  try {
+    // Get current user
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    
+    if (userError || !user) {
+      console.error("Authentication error:", userError);
+      throw new Error('User not authenticated');
+    }
+    
+    // Validate set ID
+    console.log("Adding flashcard for set ID:", data.set_id);
+    
+    if (!data.set_id || data.set_id === 'undefined') {
+      console.error("Invalid set ID:", data.set_id);
+      throw new Error('Invalid set ID');
+    }
+    
+    // Try to fetch the set to ensure it exists
+    const { data: setData, error: setError } = await supabase
+      .from('flashcard_sets')
+      .select('id')
+      .eq('id', data.set_id)
+      .single();
+    
+    if (setError) {
+      console.error("Error verifying set ID:", setError);
+      throw new Error(`Set with ID ${data.set_id} not found or access denied`);
+    }
+    
+    // Prepare the flashcard data
+    const flashcardData = {
+      set_id: data.set_id,
+      user_id: user.id,
+      front: data.front,
+      back: data.back,
+      difficulty: data.difficulty || 'medium',
+      mastered: false,
+      created_at: new Date().toISOString()
+    };
+    
+    console.log("Saving flashcard:", flashcardData);
+    
+    // Insert the flashcard
+    const { data: newCard, error } = await supabase
+      .from('flashcards')
+      .insert([flashcardData])
+      .select();
+    
+    if (error) {
+      console.error("Error saving flashcard:", error);
+      throw new Error(`Failed to save flashcard: ${error.message}`);
+    }
+    
+    console.log("Successfully saved flashcard:", newCard[0]);
+    return newCard[0];
+  } catch (error) {
+    console.error("Error in saveFlashcard:", error);
+    throw error;
+  }
+}
 export async function saveBatchFlashcards(setId: string, cards: any[]) {
   const supabase = await createClient();
   
