@@ -23,49 +23,6 @@ import { formatDate } from '@/lib/utils';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 
-// Mock data for study sessions
-const mockSessions = [
-  {
-    id: 1,
-    title: 'Advanced Calculus Review',
-    subject: 'Mathematics',
-    date: '2025-03-17T15:30:00.000Z',
-    duration: 90,
-    status: 'scheduled',
-
-    description: 'Review of integration techniques and applications for the upcoming final exam.'
-  },
-  {
-    id: 2,
-    title: 'Data Structures Deep Dive',
-    subject: 'Computer Science',
-    date: '2025-03-18T13:00:00.000Z',
-    duration: 120,
-    status: 'scheduled',
-
-    description: 'In-depth exploration of advanced data structures including red-black trees and B-trees.'
-  },
-  {
-    id: 3,
-    title: 'Organic Chemistry Study Group',
-    subject: 'Chemistry',
-    date: '2025-03-16T09:30:00.000Z',
-    duration: 60,
-    status: 'completed',
-
-    description: 'Review of carbon compounds and their reactions for upcoming midterm.'
-  },
-  {
-    id: 4,
-    title: 'Machine Learning Basics',
-    subject: 'Computer Science',
-    date: '2025-03-15T17:00:00.000Z',
-    duration: 90,
-    status: 'in-progress',
-
-    description: 'Introduction to fundamental machine learning concepts and algorithms.'
-  }
-];
 
 
 export default function StudySessionsPage() {
@@ -79,7 +36,12 @@ export default function StudySessionsPage() {
       setLoading(true);
       try {
         const data = await fetchStudySessions();
-        setSessions(data);
+        const sortedData = [...data].sort((a, b) => {
+          if (a.status === 'in-progress') return -1;
+          if (b.status === 'in-progress') return 1;
+          return 0;
+        });
+        setSessions(sortedData);
    
       } catch (err: any) {
         setError(err.message);
@@ -233,26 +195,26 @@ export default function StudySessionsPage() {
                     </p>
                     
                     <div className="flex flex-wrap items-center justify-between mt-auto">
-                      {/* <div className="flex items-center">
-                        <div className="flex -space-x-2 mr-2">
-                          {session.participants.slice(0, 3).map((participant, i) => (
+                    <div className="flex items-center">
+                        {/* <div className="flex -space-x-2 mr-2">
+                          {(session.participants || []).slice(0, 3).map((participant, i) => (
                             <Avatar 
                               key={participant.id}
-                              fallback={participant.name.split(' ').map(n => n[0]).join('')}
+                              fallback={participant.name?.split(' ').map(n => n[0]).join('') || '?'}
                               size="sm"
                               className="border-2 border-card-bg"
                             />
                           ))}
-                          {session.participants.length > 3 && (
+                          {(session.participants || []).length > 3 && (
                             <div className="w-8 h-8 rounded-full bg-primary-500/20 border-2 border-card-bg flex items-center justify-center text-xs text-primary-400">
                               +{session.participants.length - 3}
                             </div>
                           )}
-                        </div>
+                        </div> */}
                         <span className="text-text-secondary text-xs">
-                          {session.participants.length} participant{session.participants.length !== 1 ? 's' : ''}
+                          {/* {(session.participants || []).length} participant{(session.participants || []).length !== 1 ? 's' : ''} */}
                         </span>
-                      </div> */}
+                      </div> 
                       
                       <div className="flex items-center mt-2 sm:mt-0">
                         {session.status === 'in-progress' && (
