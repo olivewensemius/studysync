@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ChevronRight, PlusCircle } from "lucide-react";
 import Link from "next/link";
-import { getFlashcardSets } from "@/app/flashcards/actions"; // Adjust import path if needed
+import { getFlashcardSets } from "@/app/flashcards/actions"; 
 
 export default function FlashCardsSection() {
   const [flashcardSets, setFlashcardSets] = useState<any[]>([]);
@@ -52,13 +52,13 @@ export default function FlashCardsSection() {
               </div>
               <p className="text-text-secondary text-sm mt-1">{set.description || "No description provided."}</p>
               <div className="mt-4 flex justify-between items-center">
-                <Link href={`/flashcards/${set.id}`}>
+                <Link href={`/flashcards`}>
                   <Button variant="outline" size="sm">Study</Button>
                 </Link>
               </div>
             </div>
           ))}
-          <Link href="/flashcards/create">
+          <Link href="/flashcards/create-set">
             <Button variant="ghost" className="w-full border border-dashed border-card-border mt-3 py-2" leftIcon={<PlusCircle className="h-4 w-4" />}>Create New Set</Button>
           </Link>
         </div>
