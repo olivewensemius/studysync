@@ -219,7 +219,6 @@ interface FlashcardWithDifficulty {
 }
 
 // Generate flashcards with Gemini API
-// Update this function in src/app/flashcards/actions.ts
 export async function generateFlashcards(options: {
   topic?: string;
   content?: string;
@@ -236,7 +235,7 @@ export async function generateFlashcards(options: {
   const prompt = createFlashcardPrompt(topic, content, count, difficulty);
   
   try {
-    const response = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent', {
+    const response = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -279,50 +278,134 @@ export async function generateFlashcards(options: {
     throw new Error('Failed to generate flashcards. Please try again.');
   }
 }
-// Save a batch of flashcards
-export async function saveBatchFlashcards(setId: string, cards: FlashcardWithDifficulty[]) {
+// Updated actions.ts with correct profiles fields
+async function createUserProfile(userId: string) {
   const supabase = await createClient();
   
-  // Get current user
-  const { data: { user } } = await supabase.auth.getUser();
+  // First, get the auth user to have their email
+  const { data: { user }, error: userError } = await supabase.auth.getUser();
   
-  if (!user) {
-    throw new Error('User not authenticated');
+  if (userError || !user) {
+    console.error("Authentication error:", userError);
+    return false;
   }
   
-  // Verify the set belongs to the user
-  const { data: setData, error: setError } = await supabase
-    .from('flashcard_sets')
-    .select('id')
-    .eq('id', setId)
-    .eq('user_id', user.id)
-    .single();
+  // Create profile with the correct fields from your schema
+  const profileData = {
+    id: userId,
+    email: user.email,
+    display_name: user.user_metadata?.full_name || user.email?.split('@')[0] || 'User',
+    created_at: new Date().toISOString()
+    // avatar_url and role are likely optional
+  };
   
-  if (setError || !setData) {
-    throw new Error('Flashcard set not found or access denied');
-  }
-  
-  // Transform cards to include set_id
-  const cardsWithSetId = cards.map(card => ({
-    set_id: setId,
-    front: card.front,
-    back: card.back,
-    difficulty: card.difficulty || 'medium'
-  }));
+  console.log("Creating profile with data:", profileData);
   
   const { data, error } = await supabase
-    .from('flashcards')
-    .insert(cardsWithSetId)
+    .from('profiles')
+    .insert([profileData])
     .select();
   
   if (error) {
-    console.error('Error saving flashcards:', error);
-    throw new Error('Failed to save flashcards');
+    console.error("Error creating profile:", error);
+    return false;
   }
   
-  return data;
+  console.log("Profile created successfully:", data);
+  return true;
 }
 
+// Ensure user has a profile
+async function ensureUserProfile() {
+  const supabase = await createClient();
+  
+  const { data: { user }, error: userError } = await supabase.auth.getUser();
+  
+  if (userError || !user) {
+    console.error("Authentication error:", userError);
+    throw new Error('User not authenticated');
+  }
+  
+  // Check if profile exists
+  const { data: profile, error: profileError } = await supabase
+    .from('profiles')
+    .select('id')
+    .eq('id', user.id)
+    .single();
+  
+  if (profileError && profileError.code !== 'PGRST116') {
+    console.error("Error checking profile:", profileError);
+    return false;
+  }
+  
+  if (profile) {
+    console.log("Profile already exists:", profile);
+    return true;
+  }
+  
+  // Profile doesn't exist, create it
+  return await createUserProfile(user.id);
+}
+
+// Update your saveBatchFlashcards function with this version
+export async function saveBatchFlashcards(setId: string, cards: any[]) {
+  const supabase = await createClient();
+  
+  try {
+    // Get current user
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    
+    if (userError || !user) {
+      console.error("Authentication error:", userError);
+      throw new Error('User not authenticated');
+    }
+    
+    // First check and create profile if needed
+    console.log("Ensuring user profile exists...");
+    const profileExists = await ensureUserProfile();
+    
+    if (!profileExists) {
+      throw new Error('Failed to create user profile');
+    }
+    
+    // Log the setId to verify it's correct
+    console.log("About to save flashcards for set ID:", setId);
+    
+    if (!setId || setId === 'undefined') {
+      console.error("Invalid set ID:", setId);
+      throw new Error('Invalid set ID');
+    }
+    
+    // Transform cards to include set_id and user_id
+    const cardsWithUserData = cards.map(card => ({
+      set_id: setId,
+      user_id: user.id,
+      front: card.front,
+      back: card.back,
+      difficulty: card.difficulty || 'medium'
+    }));
+    
+    // Log the first card's data to verify
+    console.log("First card data example:", cardsWithUserData[0]);
+    
+    // Insert cards
+    const { data, error } = await supabase
+      .from('flashcards')
+      .insert(cardsWithUserData)
+      .select();
+    
+    if (error) {
+      console.error('Error saving flashcards:', error);
+      throw new Error(`Failed to save flashcards: ${error.message}`);
+    }
+    
+    console.log("Successfully saved flashcards:", data);
+    return data;
+  } catch (error) {
+    console.error("Error in saveBatchFlashcards:", error);
+    throw error;
+  }
+}
 // Helper function to create prompt for AI
 function createFlashcardPrompt(
   topic?: string, 

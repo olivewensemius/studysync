@@ -23,7 +23,9 @@ import { generateFlashcards, saveBatchFlashcards } from '../../actions';
 export default function AIFlashcardGenerator() {
   const router = useRouter();
   const params = useParams();
-  const setId = params.setId as string;
+  
+  const setId = params['set-id'] as string;
+  console.log("Using set ID from URL params:", setId, params);
   
   // Form state
   const [topic, setTopic] = useState('');
