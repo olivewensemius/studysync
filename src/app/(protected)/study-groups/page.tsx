@@ -5,13 +5,32 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { Users, PlusCircle, FilePlus, Search, ClipboardList, UserCheck, LayoutGrid } from "lucide-react";
+import { 
+  Users, 
+  PlusCircle, 
+  FilePlus, 
+  Search, 
+  ClipboardList, 
+  UserCheck, 
+  LayoutGrid,
+  UserPlus,
+  X,
+  Edit3,
+  ArrowLeft
+} from "lucide-react";
 import { useRouter } from "next/navigation";
-import { fetchStudyGroups, deleteStudyGroup, leaveStudyGroup, joinStudyGroup, updateStudyGroup, fetchGroupMembers, createStudyGroup } from "./actions";
-import { UserPlus } from "lucide-react";
+import { 
+  fetchStudyGroups, 
+  deleteStudyGroup, 
+  leaveStudyGroup, 
+  joinStudyGroup, 
+  updateStudyGroup, 
+  fetchGroupMembers, 
+  createStudyGroup,
+  inviteUserToGroup 
+} from "./actions";
 import { createClient } from '@/utils/supabase/client';
-import UserSearchComponent from "@/components/study-groups/UserSearchComponent"; 
-import { inviteUserToGroup } from "./actions";
+import UserSearchComponent from "@/components/study-groups/UserSearchComponent";
 
 export default function StudyGroupsPage() {
   const router = useRouter();
@@ -91,15 +110,16 @@ const loadGroup = async (id: string) => {
   }
 };
 
-const handleInviteUser = async (userId: string) => {
+const handleInviteUser = async (userId: string, groupId: string) => {
   try {
-    await inviteUserToGroup(id, userId);
+    await inviteUserToGroup(groupId, userId);
     return true;
   } catch (err) {
     console.error("Error inviting user:", err);
     return false;
   }
 };
+
   if (loading) return <div className="p-8">Loading...</div>;
   if (error) return <div className="p-8">Error: {error}</div>;
 
@@ -155,7 +175,7 @@ const handleInviteUser = async (userId: string) => {
               <h1 className="w-1/2 text-xl block font-medium">Group Name</h1>
               <Input 
               value={name} 
-              onChange={(e) => setName(e.target.value)} 
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setName(e.target.value)} 
               placeholder="Enter group name" 
               required
               className="w-full px-3 py-2 border rounded-md text-sm h-12 focus:ring-2 focus:ring-primary-500 bg-card-bg text-text-primary"
@@ -167,7 +187,7 @@ const handleInviteUser = async (userId: string) => {
                 <textarea
                   className="w-full px-3 py-2 border rounded-md text-sm focus:ring-2 focus:ring-primary-500 bg-card-bg text-text-primary"
                   value={description}
-                  onChange={(e) => setDescription(e.target.value)}
+                  onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setDescription(e.target.value)}
                   placeholder="Briefly describe your group"
                   required
                   rows={4}
@@ -219,12 +239,14 @@ const GroupCard: React.FC<{ group: any; router: any; showDelete: boolean; userId
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isMember, setIsMember] = useState(group.members.includes(userId)); 
   const [showMembers, setShowMembers] = useState(false);
-  const [members, setMembers] = useState<{ display_name: string; email: string; avatar_url?: string }[] | null>(null);const [loadingMembers, setLoadingMembers] = useState(false);
+  const [members, setMembers] = useState<{ display_name: string; email: string; avatar_url?: string }[] | null>(null);
+  const [loadingMembers, setLoadingMembers] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [updatedName, setUpdatedName] = useState(group.name);
   const [updatedDescription, setUpdatedDescription] = useState(group.description);
   const [updating, setUpdating] = useState(false);
-
+  // Add showInviteForm state
+  const [showInviteForm, setShowInviteForm] = useState(false);
 
   const handleLeaveGroup = async () => {
     if (!confirm(`Are you sure you want to leave ${group.name}?`)) return;
@@ -297,6 +319,17 @@ const GroupCard: React.FC<{ group: any; router: any; showDelete: boolean; userId
       setUpdating(false);
     }
   };
+  
+  // Fixed handleInviteUser function that uses group.id
+  const handleInviteUser = async (userId: string) => {
+    try {
+      await inviteUserToGroup(group.id, userId); // Fixed: Using group.id instead of undefined id
+      return true;
+    } catch (err) {
+      console.error("Error inviting user:", err);
+      return false;
+    }
+  };
 
   return (
     <Card className="p-5 dark-card border border-card-border/30 hover:border-primary-500/30 transition-all rounded-lg shadow-md">
@@ -314,14 +347,14 @@ const GroupCard: React.FC<{ group: any; router: any; showDelete: boolean; userId
           <Input
             className="w-full px-3 py-2 border rounded-md text-sm bg-card-bg text-text-primary focus:ring-2 focus:ring-primary-500"
             value={updatedName}
-            onChange={(e) => setUpdatedName(e.target.value)}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setUpdatedName(e.target.value)}
             placeholder="Enter group name"
           />
 
           <textarea
             className="w-full px-3 py-2 mt-3 border rounded-md text-sm bg-card-bg text-text-primary focus:ring-2 focus:ring-primary-500"
             value={updatedDescription}
-            onChange={(e) => setUpdatedDescription(e.target.value)}
+            onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setUpdatedDescription(e.target.value)}
             placeholder="Enter group description"
             rows={4}
           />
@@ -339,68 +372,96 @@ const GroupCard: React.FC<{ group: any; router: any; showDelete: boolean; userId
         </div>
       ) : (
         <>
-        <div className="flex justify-between items-center mb-2">
-          <h3 className="font-semibold text-text-primary text-lg">{group.name}</h3>
-           {/* Members Badge with Hover Effect */}
-          <div className="relative" 
-            onMouseEnter={handleHover} 
-            onMouseLeave={() => setTimeout(() => setShowMembers(false), 200)} // Delayed hiding to prevent flickering
-          >
-            <Badge variant="outline" size="sm" className="cursor-pointer">
-              <Users className="h-4 w-4 mr-1" /> {group.members.length} Members
-            </Badge>
+          <div className="flex justify-between items-center mb-2">
+            <h3 className="font-semibold text-text-primary text-lg">{group.name}</h3>
+            {/* Members Badge with Hover Effect */}
+            <div className="relative" 
+              onMouseEnter={handleHover} 
+              onMouseLeave={() => setTimeout(() => setShowMembers(false), 200)} // Delayed hiding to prevent flickering
+            >
+              <Badge variant="outline" size="sm" className="cursor-pointer">
+                <Users className="h-4 w-4 mr-1" /> {group.members.length} Members
+              </Badge>
 
-            {/* Floating tooltip inside the div to prevent disappearing on hover */}
-            {showMembers && (
-              <div 
-                className="fixed bg-black shadow-lg p-3 rounded-md z-50 max-h-40 overflow-auto w-52 top-8 right-0"
-                onMouseEnter={() => setShowMembers(true)} // Keep it open when hovering over tooltip
-                onMouseLeave={() => setShowMembers(false)}
-              >
-                <h4 className="text-sm font-bold mb-2">Members</h4>
-                {loadingMembers ? (
-                  <p className="text-sm text-gray-500">Loading...</p>
-                ) : members && members.length > 0 ? (
-                  members.map((member, index) => (
-                    <div key={index} className="flex items-center space-x-3 mb-2 last:mb-8">
-                      {member.avatar_url ? (
-                        <img src={member.avatar_url} alt={member.display_name} className="w-6 h-6 rounded-full" />
-                      ) : (
-                        <div className="w-6 h-6 bg-gray-300 rounded-full"></div>
-                      )}
-                      <div>
-                        <p className="text-sm text-gray-700 dark:text-gray-300">{member.display_name}</p>
-                        <p className="text-xs text-gray-500">{member.email}</p>
+              {/* Floating tooltip inside the div to prevent disappearing on hover */}
+              {showMembers && (
+                <div 
+                  className="fixed bg-black shadow-lg p-3 rounded-md z-50 max-h-40 overflow-auto w-52 top-8 right-0"
+                  onMouseEnter={() => setShowMembers(true)} // Keep it open when hovering over tooltip
+                  onMouseLeave={() => setShowMembers(false)}
+                >
+                  <h4 className="text-sm font-bold mb-2">Members</h4>
+                  {loadingMembers ? (
+                    <p className="text-sm text-gray-500">Loading...</p>
+                  ) : members && members.length > 0 ? (
+                    members.map((member, index) => (
+                      <div key={index} className="flex items-center space-x-3 mb-2 last:mb-8">
+                        {member.avatar_url ? (
+                          <img src={member.avatar_url} alt={member.display_name} className="w-6 h-6 rounded-full" />
+                        ) : (
+                          <div className="w-6 h-6 bg-gray-300 rounded-full"></div>
+                        )}
+                        <div>
+                          <p className="text-sm text-gray-700 dark:text-gray-300">{member.display_name}</p>
+                          <p className="text-xs text-gray-500">{member.email}</p>
+                        </div>
                       </div>
-                    </div>
-                  ))
-                ) : (
-                  <p className="text-sm text-gray-500">No members found.</p>
-                )}
+                    ))
+                  ) : (
+                    <p className="text-sm text-gray-500">No members found.</p>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+          <p className="text-sm text-text-secondary">{group.description}</p>
+
+          {/* Display error message if exists */}
+          {errorMessage && <p className="text-red-500 text-sm mt-2">{errorMessage}</p>}
+          
+          {/* Show invite form when applicable */}
+          {showInviteForm && userId === group.created_by && (
+            <div className="mt-4 mb-4 p-3 border border-card-border rounded-md">
+              <div className="flex justify-between mb-2">
+                <h4 className="text-sm font-medium">Invite Users</h4>
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  onClick={() => setShowInviteForm(false)}
+                >
+                  <X className="h-4 w-4" />
+                </Button>
               </div>
+              <UserSearchComponent 
+                groupId={group.id} 
+                onInviteUser={handleInviteUser}
+                existingMembers={group.members}
+              />
+            </div>
+          )}
+
+          <div className="mt-4 flex space-x-2 justify-end">
+            {showDelete && userId === group.created_by ? (
+              <>
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  onClick={() => setShowInviteForm(!showInviteForm)}
+                >
+                  <UserPlus className="h-4 w-4 mr-1" />
+                  Invite
+                </Button>
+                <Button variant="default" size="sm" onClick={() => setIsEditing(true)}>Edit</Button>        
+                <Button variant="destructive" size="sm" onClick={() => handleDeleteGroup(group.id)}>Delete</Button>
+              </>
+            ) : isMember ? (
+              <Button variant="destructive" size="sm" onClick={handleLeaveGroup}>Leave Group</Button>
+            ) : (
+              <Button variant="secondary" size="sm" onClick={handleJoinGroup}>Join Group</Button>
             )}
           </div>
-        </div>
-        <p className="text-sm text-text-secondary">{group.description}</p>
-
-        {/* Display error message if exists */}
-        {errorMessage && <p className="text-red-500 text-sm mt-2">{errorMessage}</p>}
-
-        <div className="mt-4 flex space-x-2 justify-end">
-          {showDelete && userId === group.created_by ? (
-            <>
-              <Button variant="default" size="sm" onClick={() => setIsEditing(true)}>Edit</Button>        
-              <Button variant="destructive" size="sm" onClick={() => handleDeleteGroup(group.id)}>Delete</Button>
-            </>
-          ) : isMember ? (
-            <Button variant="destructive" size="sm" onClick={handleLeaveGroup}>Leave Group</Button>
-          ) : (
-            <Button variant="secondary" size="sm" onClick={handleJoinGroup}>Join Group</Button>
-          )}
-        </div>
-      </>
+        </>
       )}
     </Card>
   );
 };
-
