@@ -45,7 +45,7 @@ const navItems = [
     name: 'Flashcards', 
     href: '/flashcards', 
     icon: Presentation,
-    badge: '3'
+    badge: ''
   },
   { 
     name: 'Analytics', 
@@ -129,7 +129,6 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
             <button className="p-2 rounded-full hover:bg-card-bg text-text-secondary relative">
               <Bell size={20} />
               <span className="absolute -top-1 -right-1 bg-primary text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">
-                3
               </span>
             </button>
             

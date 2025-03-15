@@ -37,7 +37,7 @@ const sidebarNavItems = [
     name: 'Flashcards', 
     href: '/flashcards', 
     icon: Presentation,
-    badge: '3 New'
+    badge: ''
   },
   { 
     name: 'Analytics', 
