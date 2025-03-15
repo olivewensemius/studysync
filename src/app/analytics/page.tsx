@@ -1,7 +1,7 @@
 // src/app/analytics/page.tsx
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   BarChart3, 
   Calendar, 
@@ -15,40 +15,102 @@ import {
   LineChart,
   ArrowUp,
   ArrowDown,
-  CheckCircle2
+  CheckCircle2,
+  Loader2
 } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-
-// Mock data for analytics
-const topSubjects = [
-  { name: 'Mathematics', hours: 24, percentage: 35, color: 'bg-primary-500' },
-  { name: 'Computer Science', hours: 18, percentage: 26, color: 'bg-accent-500' },
-  { name: 'Physics', hours: 15, percentage: 22, color: 'bg-indigo-500' },
-  { name: 'Chemistry', hours: 10, percentage: 14, color: 'bg-amber-500' },
-  { name: 'Biology', hours: 3, percentage: 3, color: 'bg-rose-500' },
-];
-
-const productivityMetrics = [
-  { label: 'Average Focus Time', value: '42 min', change: '+15%', trend: 'up' },
-  { label: 'Completion Rate', value: '87%', change: '+5%', trend: 'up' },
-  { label: 'Study Efficiency', value: '76%', change: '-3%', trend: 'down' },
-  { label: 'Weekly Goal Progress', value: '92%', change: '+12%', trend: 'up' },
-];
-
-const weeklyActivity = [
-  { day: 'Mon', hours: 2.5 },
-  { day: 'Tue', hours: 3.2 },
-  { day: 'Wed', hours: 1.8 },
-  { day: 'Thu', hours: 4.0 },
-  { day: 'Fri', hours: 3.5 },
-  { day: 'Sat', hours: 5.0 },
-  { day: 'Sun', hours: 2.0 },
-];
+import { 
+  fetchAnalyticsData, 
+  fetchSubjectDistribution, 
+  fetchWeeklyActivity, 
+  fetchProductivityMetrics,
+  type SubjectAnalytics,
+  type ProductivityMetric,
+  type DailyActivity
+} from './actions';
 
 export default function AnalyticsPage() {
   const [timeframe, setTimeframe] = useState('weekly');
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  
+  // State for analytics data
+  const [topSubjects, setTopSubjects] = useState<SubjectAnalytics[]>([]);
+  const [productivityMetrics, setProductivityMetrics] = useState<ProductivityMetric[]>([]);
+  const [weeklyActivity, setWeeklyActivity] = useState<DailyActivity[]>([]);
+  const [totalStudyTime, setTotalStudyTime] = useState(0);
+  const [weeklyProgress, setWeeklyProgress] = useState(0);
+  const [studyStreak, setStudyStreak] = useState(0);
+
+  // Load analytics data
+  useEffect(() => {
+    const loadAnalytics = async () => {
+      try {
+        setLoading(true);
+        
+        // Option 1: Fetch all analytics in one call
+        const analyticsData = await fetchAnalyticsData();
+        setTopSubjects(analyticsData.topSubjects);
+        setProductivityMetrics(analyticsData.productivityMetrics);
+        setWeeklyActivity(analyticsData.weeklyActivity);
+        setTotalStudyTime(analyticsData.totalStudyTime);
+        setWeeklyProgress(analyticsData.weeklyProgress);
+        setStudyStreak(analyticsData.studyStreak);
+        
+        // Option 2: Fetch data separately (uncomment if you prefer this approach)
+        // const subjects = await fetchSubjectDistribution();
+        // const activity = await fetchWeeklyActivity();
+        // const metrics = await fetchProductivityMetrics();
+        // setTopSubjects(subjects);
+        // setWeeklyActivity(activity);
+        // setProductivityMetrics(metrics);
+        
+      } catch (err) {
+        console.error("Error loading analytics:", err);
+        setError("Failed to load analytics data. Please try again later.");
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    loadAnalytics();
+  }, []);
+
+  // Handle timeframe change
+  const handleTimeframeChange = (newTimeframe: string) => {
+    setTimeframe(newTimeframe);
+    // In a real app, you might refetch data for the new timeframe
+    // For now, we'll just update the state
+  };
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center min-h-screen">
+        <div className="text-center">
+          <Loader2 className="h-12 w-12 animate-spin text-primary-400 mx-auto mb-4" />
+          <p className="text-text-secondary">Loading analytics data...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="p-6 bg-red-500/10 border border-red-500/30 rounded-md text-red-400 max-w-xl mx-auto mt-8">
+        <h2 className="text-lg font-bold mb-2">Error</h2>
+        <p>{error}</p>
+        <Button 
+          variant="outline" 
+          className="mt-4"
+          onClick={() => window.location.reload()}
+        >
+          Try Again
+        </Button>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -63,14 +125,25 @@ export default function AnalyticsPage() {
             <Button 
               variant="outline" 
               rightIcon={<ChevronDown className="h-4 w-4" />}
+              onClick={() => {
+                // Toggle between timeframes
+                const nextTimeframe = 
+                  timeframe === 'weekly' ? 'monthly' : 
+                  timeframe === 'monthly' ? 'yearly' : 'weekly';
+                handleTimeframeChange(nextTimeframe);
+              }}
             >
-              {timeframe === 'weekly' ? 'Weekly' : timeframe === 'monthly' ? 'Monthly' : 'All Time'}
+              {timeframe === 'weekly' ? 'Weekly' : 
+               timeframe === 'monthly' ? 'Monthly' : 'All Time'}
             </Button>
-            {/* Dropdown menu would go here */}
           </div>
           <Button 
             variant="outline" 
             leftIcon={<Download className="h-4 w-4" />}
+            onClick={() => {
+              // Implementation for exporting analytics data
+              alert('Export functionality would go here');
+            }}
           >
             Export
           </Button>
@@ -138,7 +211,7 @@ export default function AnalyticsPage() {
           <div className="mt-4 flex items-center justify-between text-text-secondary text-sm">
             <div className="flex items-center">
               <Clock className="h-4 w-4 mr-1" />
-              <span>Total: 22 hours</span>
+              <span>Total: {weeklyActivity.reduce((sum, day) => sum + day.hours, 0).toFixed(1)} hours</span>
             </div>
             <div className="flex items-center">
               <TrendingUp className="h-4 w-4 text-accent-400 mr-1" />
@@ -174,7 +247,7 @@ export default function AnalyticsPage() {
           <div className="mt-6 pt-4 border-t border-card-border">
             <div className="flex justify-between text-text-secondary text-sm">
               <span>Total Study Time</span>
-              <span className="text-text-primary font-medium">70 hours</span>
+              <span className="text-text-primary font-medium">{totalStudyTime} hours</span>
             </div>
           </div>
         </Card>
@@ -191,7 +264,7 @@ export default function AnalyticsPage() {
               <CheckCircle2 size={32} />
             </div>
             <div>
-              <div className="text-4xl font-bold text-text-primary">14</div>
+              <div className="text-4xl font-bold text-text-primary">{studyStreak}</div>
               <p className="text-text-secondary">days in a row</p>
             </div>
           </div>
@@ -202,7 +275,7 @@ export default function AnalyticsPage() {
               <div 
                 key={i} 
                 className={`h-8 w-8 rounded-md flex items-center justify-center text-xs ${
-                  i < 14 ? 'bg-primary-500/80 text-white' : 
+                  i < studyStreak ? 'bg-primary-500/80 text-white' : 
                   i >= 25 ? 'bg-card-border/30 text-text-muted' : 
                   'bg-card-border/50 text-text-secondary'
                 }`}
@@ -241,7 +314,7 @@ export default function AnalyticsPage() {
             </Button>
           </div>
           
-          {/* Time distribution donut chart, needs chart implementation */}
+          {/* Time distribution donut chart */}
           <div className="flex items-center justify-center">
             <div className="relative w-40 h-40">
               <div className="absolute inset-0 rounded-full border-8 border-primary-500/80"></div>
