@@ -1,7 +1,8 @@
-// src/app/flashcards/[setId]/add-card/page.tsx
+// src/app/flashcards/[set-id]/add-card/page.tsx
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useRouter, useParams } from 'next/navigation';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -14,14 +15,21 @@ import {
   Check,
   Loader2
 } from 'lucide-react';
-import { useRouter, useParams } from 'next/navigation';
+import { Badge } from '@/components/ui/badge';
 import { createFlashcard } from '../../actions';
 
 export default function AddFlashcardPage() {
   const router = useRouter();
   const params = useParams();
-  const setId = params.setId as string;
-
+  
+  // Extract set ID from URL parameters
+  const setId = params['set-id'] as string;
+  
+  useEffect(() => {
+    // Debug: Log the set ID to verify it's correct
+    console.log("Add card page loaded with set ID:", setId);
+  }, [setId]);
+  
   // Form state
   const [flashcard, setFlashcard] = useState({
     front: '',
@@ -31,9 +39,7 @@ export default function AddFlashcardPage() {
 
   const [isSaving, setIsSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
-
-  // Errors state
-  const [errors, setErrors] = useState<{[key: string]: string}>({});
+  const [error, setError] = useState<string | null>(null);
 
   // Handle input changes
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
@@ -43,13 +49,8 @@ export default function AddFlashcardPage() {
       [name]: value
     }));
 
-    // Clear any existing errors for this field
-    if (errors[name]) {
-      setErrors(prev => ({
-        ...prev,
-        [name]: ''
-      }));
-    }
+    // Clear errors when editing
+    if (error) setError(null);
   };
 
   // Handle form submission
@@ -57,25 +58,22 @@ export default function AddFlashcardPage() {
     e.preventDefault();
     
     // Validate form
-    const newErrors: {[key: string]: string} = {};
-
     if (!flashcard.front.trim()) {
-      newErrors.front = 'Front of the card is required';
+      setError('Front of the card is required');
+      return;
     }
 
     if (!flashcard.back.trim()) {
-      newErrors.back = 'Back of the card is required';
-    }
-
-    // If there are errors, set them and prevent submission
-    if (Object.keys(newErrors).length > 0) {
-      setErrors(newErrors);
+      setError('Back of the card is required');
       return;
     }
 
     // Submit to database
     setIsSaving(true);
     try {
+      // Debug: Log what we're attempting to save
+      console.log("Attempting to save flashcard with set ID:", setId);
+      
       await createFlashcard({
         set_id: setId,
         front: flashcard.front,
@@ -96,15 +94,21 @@ export default function AddFlashcardPage() {
         setSaveSuccess(false);
       }, 3000);
     } catch (err: any) {
-      setErrors({ submit: err.message || 'Failed to create flashcard' });
+      console.error("Error saving flashcard:", err);
+      setError(err.message || 'Failed to create flashcard');
     } finally {
       setIsSaving(false);
     }
   };
 
   // Handle adding another card
-  const handleAddAnother = async () => {
-    await handleSubmit({ preventDefault: () => {} } as React.FormEvent);
+  const handleAddAnother = () => {
+    handleSubmit({ preventDefault: () => {} } as React.FormEvent);
+  };
+
+  // Go back to all flashcards
+  const handleBack = () => {
+    router.push('/flashcards');
   };
 
   return (
@@ -114,7 +118,7 @@ export default function AddFlashcardPage() {
         variant="ghost" 
         size="sm"
         leftIcon={<ChevronLeft className="h-4 w-4" />}
-        onClick={() => router.push('/flashcards')}
+        onClick={handleBack}
       >
         Back to Flashcards
       </Button>
@@ -124,15 +128,17 @@ export default function AddFlashcardPage() {
       </h1>
 
       {saveSuccess && (
-        <div className="bg-green-500/10 border border-green-500/30 p-4 rounded-md text-green-400 flex items-center">
-          <Check className="h-5 w-5 mr-2" />
-          Flashcard saved successfully!
+        <div className="bg-green-500/10 border border-green-500/30 p-4 rounded-md">
+          <div className="flex items-center">
+            <Check className="h-5 w-5 text-green-500 mr-2" />
+            <p className="text-green-500">Flashcard saved successfully!</p>
+          </div>
         </div>
       )}
 
-      {errors.submit && (
-        <div className="bg-red-500/10 border border-red-500/30 p-4 rounded-md text-red-400">
-          {errors.submit}
+      {error && (
+        <div className="bg-red-500/10 border border-red-500/30 p-4 rounded-md">
+          <p className="text-red-600">{error}</p>
         </div>
       )}
 
@@ -158,11 +164,8 @@ export default function AddFlashcardPage() {
                 value={flashcard.front}
                 onChange={handleInputChange}
                 placeholder="Enter the question or prompt"
-                className={`min-h-24 ${errors.front ? 'border-red-500' : ''}`}
+                className="min-h-24"
               />
-              {errors.front && (
-                <p className="text-red-500 text-xs mt-1">{errors.front}</p>
-              )}
             </div>
 
             {/* Back of Card */}
@@ -179,11 +182,8 @@ export default function AddFlashcardPage() {
                 value={flashcard.back}
                 onChange={handleInputChange}
                 placeholder="Enter the answer or explanation"
-                className={`min-h-24 ${errors.back ? 'border-red-500' : ''}`}
+                className="min-h-24"
               />
-              {errors.back && (
-                <p className="text-red-500 text-xs mt-1">{errors.back}</p>
-              )}
             </div>
 
             {/* Difficulty */}
@@ -244,7 +244,7 @@ export default function AddFlashcardPage() {
           <Button
             type="button"
             variant="ghost"
-            onClick={() => router.push('/flashcards')}
+            onClick={handleBack}
             disabled={isSaving}
           >
             Cancel
