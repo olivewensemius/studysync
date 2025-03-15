@@ -6,7 +6,7 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Users, X } from 'lucide-react';
-import { fetchStudyGroupById, fetchGroupMembers, joinStudyGroup } from './actions';
+import { fetchStudyGroupById, fetchGroupMembers, joinStudyGroup, leaveStudyGroup } from './actions';
 
 export default function StudyGroupDetailPage() {
   const router = useRouter();
@@ -16,7 +16,9 @@ export default function StudyGroupDetailPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [joining, setJoining] = useState(false);
+  const [leaving, setLeaving] = useState(false);
   const [joinError, setJoinError] = useState('');
+  const [leaveError, setLeaveError] = useState('');
 
   // Members modal state
   const [showMembers, setShowMembers] = useState(false);
@@ -46,12 +48,30 @@ export default function StudyGroupDetailPage() {
       await joinStudyGroup(id);
       setGroup((prevGroup: any) => ({
         ...prevGroup,
+        isMember: true,
         members: [...prevGroup.members, 'currentUserPlaceholder'],
       }));
     } catch (err: any) {
       setJoinError(err.message);
     } finally {
       setJoining(false);
+    }
+  };
+
+  const handleLeaveGroup = async () => {
+    setLeaving(true);
+    setLeaveError('');
+    try {
+      await leaveStudyGroup(id);
+      setGroup((prevGroup: any) => ({
+        ...prevGroup,
+        isMember: false,
+        members: prevGroup.members.filter((memberId: string) => memberId !== 'currentUserPlaceholder'),
+      }));
+    } catch (err: any) {
+      setLeaveError(err.message);
+    } finally {
+      setLeaving(false);
     }
   };
 
@@ -92,14 +112,21 @@ export default function StudyGroupDetailPage() {
         </div>
 
         {joinError && <div className="text-red-500">{joinError}</div>}
+        {leaveError && <div className="text-red-500">{leaveError}</div>}
 
         <div className="flex justify-end gap-2">
           <Button variant="outline" onClick={() => router.push('/study-groups')}>
             Back to Groups
           </Button>
-          <Button variant="default" onClick={handleJoinGroup} disabled={joining}>
-            {joining ? 'Joining...' : 'Join Group'}
-          </Button>
+          {group.isMember ? (
+            <Button variant="destructive" onClick={handleLeaveGroup} disabled={leaving}>
+              {leaving ? 'Leaving...' : 'Leave Group'}
+            </Button>
+          ) : (
+            <Button variant="default" onClick={handleJoinGroup} disabled={joining}>
+              {joining ? 'Joining...' : 'Join Group'}
+            </Button>
+          )}
         </div>
       </Card>
 
