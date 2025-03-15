@@ -75,7 +75,7 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
     fetchUser();
   }, [pathname]);
 
-
+console.log(userData)
 
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -140,16 +140,16 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
                   className="focus:outline-none"
                 >
                   <Avatar
-                    fallback={userData.user.email?.charAt(0).toUpperCase() || "U"}
+                    fallback={userData.user.user_metadata?.full_name?.charAt(0).toUpperCase() || "U"}
                     className="border-2 border-primary/30 cursor-pointer"
                   />
                 </button>
                
                 {showProfileMenu && (
-                  <div className="absolute right-0 mt-2 w-48 bg-card-bg border border-card-border rounded-md shadow-lg py-1 z-50">
+                  <div className="absolute bg-[#333333] right-0 mt-2 w-48 bg-card-bg border border-card-border rounded-md shadow-lg py-1 z-50">
                     <Link 
                       href="/profile" 
-                      className="flex items-center px-4 py-2 text-sm text-gray-200 hover:bg-primary/10"
+                      className="flex items-center px-4 py-2 text-sm text-gray-200 hover:bg-white/10 transition-colors duration-200"
                       onClick={() => setShowProfileMenu(false)}
                     >
                       <Settings className="mr-2 h-4 w-4" />

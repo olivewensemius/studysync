@@ -4,7 +4,7 @@ import React, { useEffect, useState } from "react";
 import { Card } from "@/components/ui/card";
 import { BookOpen, Star, Users, ChevronRight } from "lucide-react";
 import Link from "next/link";
-import { fetchAnalyticsData } from "@/app/analytics/actions";
+import { fetchAnalyticsData } from "@/app/(protected)/analytics/actions";
 
 export default function RecentActivitySection() {
   const [activity, setActivity] = useState<any[]>([]);

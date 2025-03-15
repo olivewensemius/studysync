@@ -6,12 +6,14 @@ import { signup } from './actions'
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Mail, Lock } from 'lucide-react';
+import { Mail, Lock, User } from 'lucide-react';
 import Link from 'next/link';
 import { useState } from 'react';
 
 export default function RegisterPage() {
   const [formData, setFormData] = useState({
+    firstName: '',
+    lastName: '',
     email: '',
     password: '',
     confirm_password: ''
@@ -29,14 +31,22 @@ export default function RegisterPage() {
   const handleSubmit = async (formData: FormData) => {
     const password = formData.get('password') as string;
     const confirmPassword = formData.get('confirm_password') as string;
+    const firstName = formData.get('firstName') as string;
+    const lastName = formData.get('lastName') as string;
 
     if (password !== confirmPassword) {
       setError('Passwords do not match');
       return;
     }
 
+    // Create a new FormData instance with the combined name
+    const updatedFormData = new FormData();
+    updatedFormData.append('display_name', `${firstName} ${lastName}`);
+    updatedFormData.append('email', formData.get('email') as string);
+    updatedFormData.append('password', password);
+
     try {
-      await signup(formData);
+      await signup(updatedFormData);
     } catch (err) {
       setError('An error occurred during registration');
     }
@@ -75,6 +85,38 @@ export default function RegisterPage() {
         </div>
         
         <form className="space-y-4">
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label htmlFor="firstName" className="block mb-2 text-sm font-medium text-gray-200">First Name</label>
+              <Input 
+                type="text" 
+                name="firstName" 
+                id="firstName" 
+                value={formData.firstName}
+                onChange={handleChange}
+                leftIcon={<User className="text-gray-400" />}
+                placeholder="John" 
+                required 
+                className="text-gray-800"
+                variant={error ? "error" : "default"}
+              />
+            </div>
+            <div>
+              <label htmlFor="lastName" className="block mb-2 text-sm font-medium text-gray-200">Last Name</label>
+              <Input 
+                type="text" 
+                name="lastName" 
+                id="lastName" 
+                value={formData.lastName}
+                onChange={handleChange}
+                leftIcon={<User className="text-gray-400" />}
+                placeholder="Doe" 
+                required 
+                className="text-gray-800"
+                variant={error ? "error" : "default"}
+              />
+            </div>
+          </div>
           <div>
             <label htmlFor="email" className="block mb-2 text-sm font-medium text-gray-200">Email address</label>
             <Input 
