@@ -169,4 +169,54 @@ import { createClient } from '@/utils/supabase/server'
     revalidatePath(`/study-groups/${groupId}`);
   }
   
-  
+  export async function updateStudyGroup(groupId: string, { name, description }: { name?: string; description?: string }) {
+    const supabase = await createClient();
+
+    // Retrieve authenticated user
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    if (userError || !user) {
+        throw new Error('You must be logged in to update a group.');
+    }
+
+    console.log('Updating group:', groupId, 'Requested by:', user.id);
+
+    // Fetch the study group to verify ownership
+    const { data: group, error: fetchError } = await supabase
+        .from('study_groups')
+        .select('created_by')
+        .eq('id', groupId)
+        .single();
+
+    if (fetchError) {
+        console.error('Error fetching group:', fetchError);
+        throw new Error('Error fetching group.');
+    }
+
+    if (!group) {
+        throw new Error('Study group not found.');
+    }
+
+    // Ensure the current user is the creator
+    if (group.created_by !== user.id) {
+        throw new Error('You are not authorized to update this group.');
+    }
+
+    // Update the study group with new details
+    const { error: updateError } = await supabase
+        .from('study_groups')
+        .update({ 
+            ...(name ? { name } : {}), 
+            ...(description ? { description } : {})
+        })
+        .eq('id', groupId);
+
+    if (updateError) {
+        console.error('Error updating group:', updateError);
+        throw new Error('Failed to update study group.');
+    }
+
+    console.log('Successfully updated group:', groupId);
+
+    // Revalidate study groups page
+    revalidatePath(`/study-groups/${groupId}`);
+}
