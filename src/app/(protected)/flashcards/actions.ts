@@ -282,7 +282,7 @@ export async function generateFlashcards(options: {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'x-goog-api-key': process.env.GEMINI_API_KEY || ''
+        'x-goog-api-key': process.env.NEXT_PUBLIC_GEMINI_API_KEY|| ''
       },
       body: JSON.stringify({
         contents: [

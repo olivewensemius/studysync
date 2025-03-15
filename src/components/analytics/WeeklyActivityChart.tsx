@@ -8,7 +8,7 @@ import {
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Clock, TrendingUp, Filter, Loader2 } from 'lucide-react';
-import { fetchWeeklyActivity, type DailyActivity } from '@/app/analytics/actions';
+import { fetchWeeklyActivity, type DailyActivity } from '@/app/(protected)/analytics/actions';
 
 // Custom tooltip component for the chart
 const CustomTooltip = ({ active, payload, label }: any) => {

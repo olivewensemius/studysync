@@ -8,7 +8,7 @@ import {
 import { Card } from '@/components/ui/card';
 import { Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { fetchSubjectDistribution, type SubjectAnalytics } from '@/app/analytics/actions';
+import { fetchSubjectDistribution, type SubjectAnalytics } from '@/app/(protected)/analytics/actions';
 
 // Custom tooltip component for the pie chart
 const CustomTooltip = ({ active, payload }: any) => {
