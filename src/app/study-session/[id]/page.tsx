@@ -150,6 +150,7 @@ export default function StudySessionDetailPage() {
             <>
               <Button 
                 variant="ghost"
+                onClick={() => router.push(`/study-session/${sessionId}/edit`)}
               >
                 <Edit className="h-4 w-4 mr-2" />
                 Edit
@@ -261,15 +262,7 @@ export default function StudySessionDetailPage() {
           <Card className="dark-card">
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-lg font-bold text-text-primary">Session Topics</h2>
-              {session.status === 'scheduled' && (
-                <Button 
-                  variant="ghost" 
-                  size="sm"
-                >
-                  <PlusCircle className="h-4 w-4 mr-2" />
-                  Add Topic
-                </Button>
-              )}
+
             </div>
             
             <div className="space-y-3">
@@ -288,14 +281,8 @@ export default function StudySessionDetailPage() {
                     <Badge variant="outline" className="text-text-secondary border-card-border mr-2">
                       <Clock className="h-3 w-3 mr-1" /> {topic.duration} min
                     </Badge>
-                    {topic.completed ? (
+                    {topic.completed && (
                       <CheckCircle className="h-5 w-5 text-accent-500" />
-                    ) : (
-                      session.status === 'scheduled' && (
-                        <button className="text-text-muted hover:text-text-secondary p-1">
-                          <Edit className="h-4 w-4" />
-                        </button>
-                      )
                     )}
                   </div>
                 </div>
@@ -314,15 +301,7 @@ export default function StudySessionDetailPage() {
           <Card className="dark-card">
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-lg font-bold text-text-primary">Study Resources</h2>
-              {session.status === 'scheduled' && (
-                <Button 
-                  variant="ghost" 
-                  size="sm"
-                >
-                  <PlusCircle className="h-4 w-4 mr-2" />
-                  Add Resource
-                </Button>
-              )}
+ 
             </div>
             
             <div className="space-y-3">

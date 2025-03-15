@@ -202,7 +202,7 @@ export async function fetchSessionTopics(sessionId: string) {
     if (error) {
       throw new Error('Error fetching session topics: ' + error.message);
     }
-    console.log(data)
+
     return data;
   }
 
@@ -235,4 +235,19 @@ export async function deleteStudySession(sessionId: string) {
   if (sessionError) {
     throw new Error('Error deleting study session: ' + sessionError.message);
   }
+}
+
+export async function updateStudySession(sessionId: string, data: {
+  title?: string;
+  subject?: string;
+  date?: string;
+  duration?: number;
+  description?: string;
+  location?: string;
+  locationDetails?: string;
+  participantEmails?: string[];
+  resources?: { title: string; type: string; url: string; }[];
+  topics?: { title: string; duration: string; }[];
+}) {
+console.log(data)
 }
