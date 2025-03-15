@@ -8,6 +8,10 @@ import { Input } from "@/components/ui/input";
 import { Users, PlusCircle, FilePlus, Search, ClipboardList, UserCheck, LayoutGrid } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { fetchStudyGroups, deleteStudyGroup, leaveStudyGroup, joinStudyGroup, updateStudyGroup, fetchGroupMembers, createStudyGroup } from "./actions";
+import { UserPlus } from "lucide-react";
+import { createClient } from '@/utils/supabase/client';
+import UserSearchComponent from "@/components/study-groups/UserSearchComponent"; 
+import { inviteUserToGroup } from "./actions";
 
 export default function StudyGroupsPage() {
   const router = useRouter();
@@ -21,49 +25,81 @@ export default function StudyGroupsPage() {
   const [error, setError] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
   const [activeSection, setActiveSection] = useState("my-groups");
- 
   // State for creating a group
  const [name, setName] = useState("");
  const [description, setDescription] = useState("");
  const [creating, setCreating] = useState(false);
-
-  useEffect(() => {
-    const loadGroups = async () => {
-      setLoading(true);
-      try {
-        const data = await fetchStudyGroups();
-        setGroups(data);
-      } catch (err) {
-        setError("Failed to load study groups.");
-      } finally {
-        setLoading(false);
-      }
-    };
-    loadGroups();
-  }, []);
-
-  const handleCreateGroup = async () => {
-    if (!name.trim() || !description.trim()) {
-      setError("Both 'Group Name' and 'Description' are required.");
-      return;
-    }
-  
-    setCreating(true);
-    setError("");
-    
+ const [showInviteForm, setShowInviteForm] = useState(false);
+ const [currentUserId, setCurrentUserId] = useState("");
+  // Study groups list loading effect
+useEffect(() => {
+  const loadGroups = async () => {
+    setLoading(true);
     try {
-      await createStudyGroup({ name, description });
-      setName("");
-      setDescription("");
-      setActiveSection("my-groups"); // Switch back after creation
-      window.location.reload(); // Refresh the page
-    } catch (err: any) {
-      setError(err.message);
+      const data = await fetchStudyGroups();
+      setGroups(data);
+    } catch (err) {
+      setError("Failed to load study groups.");
     } finally {
-      setCreating(false);
+      setLoading(false);
     }
   };
+  loadGroups();
+}, []);
 
+// Handle group creation
+const handleCreateGroup = async () => {
+  if (!name.trim() || !description.trim()) {
+    setError("Both 'Group Name' and 'Description' are required.");
+    return;
+  }
+
+  setCreating(true);
+  setError("");
+  
+  try {
+    await createStudyGroup({ name, description });
+    setName("");
+    setDescription("");
+    setActiveSection("my-groups"); // Switch back after creation
+    window.location.reload(); // Refresh the page
+  } catch (err: any) {
+    setError(err.message);
+  } finally {
+    setCreating(false);
+  }
+};
+
+// Load single group details
+const loadGroup = async (id: string) => {
+  setLoading(true);
+  try {
+    const data = await fetchStudyGroups();
+    setGroups(data);
+    
+    // Get current user ID from auth
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user) {
+      setCurrentUserId(user.id);
+    }
+    
+  } catch (err: any) {
+    setError(err.message);
+  } finally {
+    setLoading(false);
+  }
+};
+
+const handleInviteUser = async (userId: string) => {
+  try {
+    await inviteUserToGroup(id, userId);
+    return true;
+  } catch (err) {
+    console.error("Error inviting user:", err);
+    return false;
+  }
+};
   if (loading) return <div className="p-8">Loading...</div>;
   if (error) return <div className="p-8">Error: {error}</div>;
 

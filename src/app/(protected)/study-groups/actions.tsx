@@ -303,3 +303,203 @@ export async function updateStudyGroup(groupId: string, { name, description }: {
   // Revalidate study groups page
   revalidatePath(`/study-groups/${groupId}`);
 }
+
+
+export async function inviteUserToGroup(groupId: string, userId: string) {
+  const supabase = await createClient();
+
+  // Get current user
+  const { data: { user }, error: userError } = await supabase.auth.getUser();
+  if (userError || !user) {
+    throw new Error('You must be logged in to invite users.');
+  }
+
+  // Check if the current user is a member or creator of the group
+  const { data: group, error: groupError } = await supabase
+    .from('study_groups')
+    .select('id, created_by, members')
+    .eq('id', groupId)
+    .single();
+
+  if (groupError || !group) {
+    throw new Error('Group not found.');
+  }
+
+  const isCreator = group.created_by === user.id;
+  const isMember = group.members.includes(user.id);
+
+  if (!isCreator && !isMember) {
+    throw new Error('You must be a member of this group to invite others.');
+  }
+
+  // Check if user is already a member
+  if (group.members.includes(userId)) {
+    throw new Error('User is already a member of this group.');
+  }
+
+  // Check if an invitation already exists
+  const { data: existingInvite, error: inviteCheckError } = await supabase
+    .from('study_group_invitations')
+    .select('id')
+    .eq('group_id', groupId)
+    .eq('user_id', userId)
+    .eq('status', 'pending');
+
+  if (existingInvite && existingInvite.length > 0) {
+    throw new Error('User has already been invited to this group.');
+  }
+
+  // Create the invitation
+  const { error: inviteError } = await supabase
+    .from('study_group_invitations')
+    .insert([{
+      group_id: groupId,
+      user_id: userId,
+      invited_by: user.id,
+      status: 'pending'
+    }]);
+
+  if (inviteError) {
+    console.error('Error creating invitation:', inviteError);
+    throw new Error('Failed to create invitation.');
+  }
+
+  revalidatePath(`/study-groups/${groupId}`);
+  return { success: true };
+}
+
+export async function getPendingInvitations() {
+  const supabase = await createClient();
+
+  // Get current user
+  const { data: { user }, error: userError } = await supabase.auth.getUser();
+  if (userError || !user) {
+    throw new Error('You must be logged in.');
+  }
+
+  // Get invitations with group details
+  const { data, error } = await supabase
+    .from('study_group_invitations')
+    .select(`
+      id,
+      created_at,
+      status,
+      group_id,
+      invited_by,
+      study_groups(id, name, description)
+    `)
+    .eq('user_id', user.id)
+    .eq('status', 'pending');
+
+  if (error) {
+    console.error('Error fetching invitations:', error);
+    throw new Error('Failed to fetch invitations.');
+  }
+
+  return data || [];
+}
+
+export async function acceptGroupInvitation(invitationId: string) {
+  const supabase = await createClient();
+
+  // Get current user
+  const { data: { user }, error: userError } = await supabase.auth.getUser();
+  if (userError || !user) {
+    throw new Error('You must be logged in to accept invitations.');
+  }
+
+  // Get the invitation details
+  const { data: invitation, error: inviteError } = await supabase
+    .from('study_group_invitations')
+    .select('id, group_id, user_id, status')
+    .eq('id', invitationId)
+    .single();
+
+  if (inviteError || !invitation) {
+    throw new Error('Invitation not found.');
+  }
+
+  // Verify the invitation is for the current user
+  if (invitation.user_id !== user.id) {
+    throw new Error('This invitation is not for you.');
+  }
+
+  // Verify the invitation is still pending
+  if (invitation.status !== 'pending') {
+    throw new Error('This invitation has already been processed.');
+  }
+
+  // Get the group
+  const { data: group, error: groupError } = await supabase
+    .from('study_groups')
+    .select('id, members')
+    .eq('id', invitation.group_id)
+    .single();
+
+  if (groupError || !group) {
+    throw new Error('Group not found.');
+  }
+
+  // Add user to the group members
+  const updatedMembers = [...group.members, user.id];
+
+  const { error: updateError } = await supabase
+    .from('study_groups')
+    .update({ members: updatedMembers })
+    .eq('id', invitation.group_id);
+
+  if (updateError) {
+    throw new Error('Failed to join group.');
+  }
+
+  // Update invitation status
+  const { error: statusError } = await supabase
+    .from('study_group_invitations')
+    .update({ status: 'accepted' })
+    .eq('id', invitationId);
+
+  if (statusError) {
+    console.error('Error updating invitation status:', statusError);
+  }
+
+  revalidatePath('/study-groups');
+  revalidatePath(`/study-groups/${invitation.group_id}`);
+}
+
+export async function declineGroupInvitation(invitationId: string) {
+  const supabase = await createClient();
+
+  // Get current user
+  const { data: { user }, error: userError } = await supabase.auth.getUser();
+  if (userError || !user) {
+    throw new Error('You must be logged in to decline invitations.');
+  }
+
+  // Get the invitation details
+  const { data: invitation, error: inviteError } = await supabase
+    .from('study_group_invitations')
+    .select('id, user_id')
+    .eq('id', invitationId)
+    .single();
+
+  if (inviteError || !invitation) {
+    throw new Error('Invitation not found.');
+  }
+
+  // Verify the invitation is for the current user
+  if (invitation.user_id !== user.id) {
+    throw new Error('This invitation is not for you.');
+  }
+
+  // Update invitation status to declined
+  const { error: statusError } = await supabase
+    .from('study_group_invitations')
+    .update({ status: 'declined' })
+    .eq('id', invitationId);
+
+  if (statusError) {
+    throw new Error('Failed to decline invitation.');
+  }
+
+  revalidatePath('/study-groups');
+}
