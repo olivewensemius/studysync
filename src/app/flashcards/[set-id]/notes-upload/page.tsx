@@ -217,7 +217,7 @@ export default function NotesUploadGenerator() {
               value={fileContent}
               onChange={(e) => setFileContent(e.target.value)}
               placeholder="Paste or type your notes here, or upload a file above"
-              className="min-h-32 text-black"
+              className="min-h-32 text-white border-white bg-card-bg"
             />
             <p className="text-text-secondary text-xs mt-1">
               {fileContent.length > 0 ? 

@@ -331,7 +331,7 @@ export default function FlashcardsPage() {
                 leftIcon={<PlusCircle className="h-4 w-4" />}
                 onClick={() => router.push('/flashcards/create-set')}
               >
-                Create First Set
+                Create A New Set
               </Button>
             </Card>
           ) : loading ? (
