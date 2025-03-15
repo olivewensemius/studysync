@@ -4,18 +4,14 @@ import React, { useEffect, useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Users, PlusCircle, Expand, Trash2, Search } from "lucide-react";
+import { Avatar } from "@/components/ui/avatar";
+import { Users, PlusCircle, ChevronRight, Search } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { fetchStudyGroups, deleteStudyGroup } from "./actions";
 
 export default function StudyGroupsPage() {
   const router = useRouter();
-  const [groups, setGroups] = useState<{ allGroups: any[], myGroups: any[], createdGroups: any[], userId: string | null }>({
-    allGroups: [],
-    myGroups: [],
-    createdGroups: [],
-    userId: null
-  });
+  const [groups, setGroups] = useState<{ allGroups: any[]; myGroups: any[]; createdGroups: any[]; userId: string | null }>({ allGroups: [], myGroups: [], createdGroups: [], userId: null });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
@@ -25,126 +21,92 @@ export default function StudyGroupsPage() {
       setLoading(true);
       try {
         const data = await fetchStudyGroups();
-        console.log("Fetched groups:", data);
         setGroups(data);
-      } catch (err: any) {
-        setError(err.message);
+      } catch (err) {
+        setError("Failed to load study groups.");
       } finally {
         setLoading(false);
       }
     };
-
     loadGroups();
   }, []);
 
   if (loading) return <div className="p-8">Loading...</div>;
   if (error) return <div className="p-8">Error: {error}</div>;
 
-  // Filtering function for search input
-  const filteredGroups = groups.allGroups.filter(group =>
-    group.name.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredGroups = groups.allGroups.filter(group => group.name.toLowerCase().includes(searchTerm.toLowerCase()));
 
   return (
     <div className="space-y-6 p-8">
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold">Study Groups</h1>
-        <Button variant="default" onClick={() => router.push("/study-groups/create")}>
-          <PlusCircle className="h-5 w-5 mr-2" /> Create Group
-        </Button>
+        <h1 className="text-2xl font-bold text-text-primary">Study Groups</h1>
+        <Button variant="outline" leftIcon={<PlusCircle className="h-5 w-5" />} onClick={() => router.push("/study-groups/create")}>Create Group</Button>
       </div>
-
-      {/* My Groups Section */}
-      <div>
-        <h2 className="text-xl font-semibold mb-4">My Groups</h2>
-        {groups.myGroups.length === 0 ? (
-          <div className="text-gray-500">You are not part of any study groups yet.</div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {groups.myGroups.map((group) => (
-              <GroupCard key={group.id} group={group} userId={groups.userId} router={router} showDelete={false} />
-            ))}
-          </div>
-        )}
+      
+      <div className="relative mb-6">
+        <Search className="absolute left-3 top-3 text-text-secondary" size={18} />
+        <input
+          type="text"
+          placeholder="Search groups..."
+          className="pl-10 pr-4 py-2 border border-card-border rounded-md w-full bg-card-bg text-text-primary focus:ring-2 focus:ring-primary-500"
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+        />
       </div>
-
-      {/* Created Groups Dashboard Section */}
-      <div>
-        <h2 className="text-xl font-semibold mb-4">Groups You Created</h2>
-        {groups.createdGroups.length === 0 ? (
-          <div className="text-gray-500">You haven't created any study groups.</div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {groups.createdGroups.map((group) => (
-              <GroupCard key={group.id} group={group} userId={groups.userId} router={router} showDelete={true} />
-            ))}
-          </div>
-        )}
-      </div>
-
-      {/* Find a Group Section */}
-      <div>
-        <h2 className="text-xl font-semibold mb-4">Find a Group</h2>
-        <div className="mb-4 flex items-center space-x-2">
-          <Search className="h-5 w-5" />
-          <input
-            type="text"
-            placeholder="Search groups..."
-            className="p-2 border rounded-md w-full"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
-        </div>
-
-        {filteredGroups.length === 0 ? (
-          <div className="text-gray-500">No study groups found.</div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredGroups.map((group) => (
-              <GroupCard key={group.id} group={group} userId={groups.userId} router={router} showDelete={false} />
-            ))}
-          </div>
-        )}
-      </div>
+      
+      <GroupSection title="My Groups" groups={groups.myGroups} router={router} showDelete={false} userId={groups.userId} />
+      <GroupSection title="Groups You Created" groups={groups.createdGroups} router={router} showDelete={true} userId={groups.userId} />
+      <GroupSection title="Find a Group" groups={filteredGroups} router={router} showDelete={false} userId={groups.userId} />
     </div>
   );
 }
 
-const GroupCard = ({ group, userId, router, showDelete }: { group: any; userId: string | null; router: any; showDelete: boolean }) => (
-  <Card key={group.id} className="p-4 dark-card">
+const GroupSection: React.FC<{ title: string; groups: any[]; router: any; showDelete: boolean; userId: string | null }> = ({ title, groups, router, showDelete, userId }) => (
+  <Card className="dark-card mb-6">
+    <div className="flex justify-between items-center mb-4">
+      <h2 className="text-lg font-bold text-text-primary">{title}</h2>
+    </div>
+    {groups.length === 0 ? (
+      <p className="text-text-secondary">No groups found.</p>
+    ) : (
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {groups.map(group => (
+          <GroupCard key={group.id} group={group} router={router} showDelete={showDelete} userId={userId} />
+        ))}
+      </div>
+    )}
+  </Card>
+);
+
+const GroupCard: React.FC<{ group: any; router: any; showDelete: boolean; userId: string | null }> = ({ group, router, showDelete, userId }) => (
+  <Card className="p-4 dark-card border border-card-border/30 hover:border-primary-500/30 transition-colors">
     <div className="flex justify-between items-center mb-2">
-      <h2 className="text-lg font-bold">{group.name}</h2>
-      <Badge variant="outline">
+      <h3 className="font-medium text-text-primary">{group.name}</h3>
+      <Badge variant="outline" size="sm">
         <Users className="h-4 w-4 mr-1" /> {group.members.length} Members
       </Badge>
     </div>
-
-    <p className="text-sm text-gray-500">{group.description}</p>
-
+    <p className="text-sm text-text-secondary">{group.description}</p>
+    <div className="mt-3 flex items-center">
+      <Avatar fallback="G" size="xs" className="border border-card-bg" />
+      <span className="text-xs text-text-secondary ml-2">Created by {group.creatorName}</span>
+    </div>
     <div className="mt-4 flex space-x-2">
-      <Button variant="outline" size="icon" onClick={() => router.push(`/study-groups/${group.id}`)}>
-        <Expand className="h-4 w-4" />
-      </Button>
-
-      {/* Show delete button only for creators */}
+      <Button variant="outline" size="sm" onClick={() => router.push(`/study-groups/${group.id}`)}>View</Button>
       {showDelete && userId === group.created_by && (
-        <Button variant="destructive" size="icon" onClick={() => handleDeleteGroup(group.id)}>
-          <Trash2 className="h-4 w-4" />
-        </Button>
+        <Button variant="destructive" size="sm" onClick={() => handleDeleteGroup(group.id)}>Delete</Button>
       )}
     </div>
   </Card>
 );
 
 const handleDeleteGroup = async (groupId: string) => {
-  const confirmDelete = confirm("Are you sure you want to delete this group?");
-  if (!confirmDelete) return;
-
+  if (!confirm("Are you sure you want to delete this group?")) return;
   try {
-      await deleteStudyGroup(groupId);
-      alert("Group deleted successfully.");
-      window.location.reload(); // Refresh the page after deletion
-  } catch (error: any) {
-      alert(error.message);
+    await deleteStudyGroup(groupId);
+    alert("Group deleted successfully.");
+    window.location.reload();
+  } catch (error) {
+    alert("Failed to delete group.");
   }
 };

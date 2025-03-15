@@ -67,7 +67,7 @@ export async function fetchAnalyticsData(timeframe: string = 'weekly'): Promise<
     const { data: studySessions, error: sessionsError } = await supabase
       .from('study_sessions')
       .select('*')
-      .eq('created_by', user.id) // Using created_by instead of user_id based on your schema
+      .eq('created_by', user.id)
       .gte('date', startDate.toISOString())
       .order('date', { ascending: false });
       
@@ -75,7 +75,6 @@ export async function fetchAnalyticsData(timeframe: string = 'weekly'): Promise<
       console.error('Error fetching study sessions:', sessionsError);
     }
     
-    // Check if flashcard_activity table exists by attempting to query it
     let flashcardActivity = [];
     try {
       const { data, error } = await supabase
@@ -294,8 +293,6 @@ function calculateProductivityMetrics(sessions: any[], flashcardActivity: any[])
   const weeklyProgress = Math.min(Math.round((actualHoursThisWeek / targetHoursPerWeek) * 100), 100);
   
   // Get previous period data for trend calculation
-  // For a real implementation, you would need to fetch data from previous periods
-  // For now, we'll use hardcoded trends
   
   return [
     { 
