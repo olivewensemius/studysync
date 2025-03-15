@@ -1,6 +1,5 @@
 // src/utils/file-parser.ts
 export async function parseFileContent(file: File): Promise<string> {
-    // For now, let's focus on text files which don't require external libraries
     const fileType = file.type;
     const fileName = file.name.toLowerCase();
     
