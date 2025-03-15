@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Star, Clock, BarChart3, Users } from "lucide-react";
-import { fetchAnalyticsData } from "@/app/analytics/actions";
+import { fetchAnalyticsData } from "@/app/(protected)/analytics/actions";
 
 export default function StatsCardsSection() {
   const [stats, setStats] = useState({

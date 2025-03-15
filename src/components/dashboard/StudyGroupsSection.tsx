@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar } from "@/components/ui/avatar";
 import { Users, PlusCircle, ChevronRight } from "lucide-react";
 import Link from "next/link";
-import { fetchStudyGroups } from "@/app/study-groups/actions"; 
+import { fetchStudyGroups } from "@/app/(protected)/study-groups/actions"; 
 
 export default function DashboardStudyGroups() {
   const [studyGroups, setStudyGroups] = useState<any[]>([]);

@@ -18,7 +18,7 @@ export function Modal({ isOpen, onClose, children }: ModalProps) {
       />
       
       {/* Modal */}
-      <div className="fixed left-[50%] top-[50%] z-50 translate-x-[-50%] translate-y-[-50%] bg-gray-800 dark:bg-gray-900 border border-border rounded-lg shadow-lg p-6 w-full max-w-lg">
+      <div className="fixed left-[50%] top-[50%] z-50 translate-x-[-50%] translate-y-[-50%]  dark:bg-[#333333] border border-border rounded-lg shadow-lg p-6 w-full max-w-lg">
         {children}
       </div>
     </>

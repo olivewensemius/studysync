@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ChevronRight, PlusCircle } from "lucide-react";
 import Link from "next/link";
-import { getFlashcardSets } from "@/app/flashcards/actions"; 
+import { getFlashcardSets } from "@/app/(protected)/flashcards/actions"; 
 
 export default function FlashCardsSection() {
   const [flashcardSets, setFlashcardSets] = useState<any[]>([]);

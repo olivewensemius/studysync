@@ -40,7 +40,6 @@ const recentActivity = [
 ];
 
 export default function DashboardPage() {
-  // Get current date for greeting
   const currentHour = new Date().getHours();
   let greeting = "Good morning";
   if (currentHour >= 12 && currentHour < 18) {

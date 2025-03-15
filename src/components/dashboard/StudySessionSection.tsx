@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ChevronRight, PlusCircle, Calendar, Clock } from "lucide-react";
 import Link from "next/link";
-import { fetchStudySessions } from "@/app/study-session/actions"; 
+import { fetchStudySessions } from "@/app/(protected)/study-session/actions"; 
 
 export default function StudySessionsSection() {
   const [studySessions, setStudySessions] = useState<any[]>([]);
