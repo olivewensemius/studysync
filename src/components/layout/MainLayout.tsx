@@ -83,10 +83,10 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
       <header className="glass-nav sticky top-0 z-50 px-4 py-3">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           {/* Logo */}
-          <div className="flex items-center space-x-3">
+          <Link href="/" className="flex items-center space-x-3 cursor-pointer">
             <Sparkles className="text-primary h-6 w-6" />
             <span className="text-xl font-bold font-display gradient-text">StudySync</span>
-          </div>
+          </Link>
 
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center space-x-6">
