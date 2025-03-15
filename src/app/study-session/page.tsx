@@ -6,6 +6,8 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Avatar } from '@/components/ui/avatar';
+
+import { fetchStudySessions } from './actions'
 import { 
   Clock, 
   PlusCircle, 
@@ -30,11 +32,7 @@ const mockSessions = [
     date: '2025-03-17T15:30:00.000Z',
     duration: 90,
     status: 'scheduled',
-    participants: [
-      { id: 1, name: 'Alex Johnson', avatar: null },
-      { id: 2, name: 'Maria Garcia', avatar: null },
-      { id: 3, name: 'David Chen', avatar: null },
-    ],
+
     description: 'Review of integration techniques and applications for the upcoming final exam.'
   },
   {
@@ -44,12 +42,7 @@ const mockSessions = [
     date: '2025-03-18T13:00:00.000Z',
     duration: 120,
     status: 'scheduled',
-    participants: [
-      { id: 1, name: 'Alex Johnson', avatar: null },
-      { id: 4, name: 'Sarah Williams', avatar: null },
-      { id: 5, name: 'Michael Brown', avatar: null },
-      { id: 6, name: 'Emily Davis', avatar: null },
-    ],
+
     description: 'In-depth exploration of advanced data structures including red-black trees and B-trees.'
   },
   {
@@ -59,11 +52,7 @@ const mockSessions = [
     date: '2025-03-16T09:30:00.000Z',
     duration: 60,
     status: 'completed',
-    participants: [
-      { id: 2, name: 'Maria Garcia', avatar: null },
-      { id: 7, name: 'James Wilson', avatar: null },
-      { id: 8, name: 'Olivia Martinez', avatar: null },
-    ],
+
     description: 'Review of carbon compounds and their reactions for upcoming midterm.'
   },
   {
@@ -73,19 +62,34 @@ const mockSessions = [
     date: '2025-03-15T17:00:00.000Z',
     duration: 90,
     status: 'in-progress',
-    participants: [
-      { id: 1, name: 'Alex Johnson', avatar: null },
-      { id: 3, name: 'David Chen', avatar: null },
-      { id: 5, name: 'Michael Brown', avatar: null },
-    ],
+
     description: 'Introduction to fundamental machine learning concepts and algorithms.'
   }
 ];
 
+
 export default function StudySessionsPage() {
-  const [sessions, setSessions] = useState(mockSessions);
+  const [sessions, setSessions] = useState<any[]>([]);
   const [filter, setFilter] = useState('all'); // 'all', 'scheduled', 'in-progress', 'completed'
-  const router = useRouter();
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    const loadSessions = async () => {
+      setLoading(true);
+      try {
+        const data = await fetchStudySessions();
+        setSessions(data);
+   
+      } catch (err: any) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      } 
+    };
+
+    loadSessions();
+  }, []);
 
   // Filter sessions based on selected filter
   const filteredSessions = filter === 'all' 
@@ -96,12 +100,12 @@ export default function StudySessionsPage() {
   const getStatusBadge = (status: string) => {
     switch(status) {
       case 'scheduled':
-        return { variant: 'primary' as const, text: 'Scheduled' };
+        return { variant: 'warning' as const, text: 'Scheduled' };
       case 'in-progress':
-        return { variant: 'accent' as const, text: 'In Progress', glow: true };
+        return { variant: 'success' as const, text: 'In Progress', glow: true };
       case 'completed':
-        return { variant: 'secondary' as const, text: 'Completed' };
-      default:
+        return { variant: 'info' as const, text: 'Completed' };
+      default:  
         return { variant: 'default' as const, text: status };
     }
   };
@@ -121,13 +125,14 @@ export default function StudySessionsPage() {
           >
             Filter
           </Button>
-          <Button 
-            variant="default"
-            leftIcon={<PlusCircle className="h-4 w-4" />}
-            onClick={() => router.push('/study-sessions/create')}
-          >
-            New Session
-          </Button>
+          <Link href="/study-session/create">
+            <Button 
+              variant="default"
+              leftIcon={<PlusCircle className="h-4 w-4" />}
+            >
+              New Session
+            </Button>
+          </Link>
         </div>
       </div>
 
@@ -169,14 +174,15 @@ export default function StudySessionsPage() {
               ? "You don't have any study sessions yet" 
               : `You don't have any ${filter} sessions`}
           </p>
-          <Button 
-            variant="outline" 
-            className="mt-4"
-            leftIcon={<PlusCircle className="h-4 w-4" />}
-            onClick={() => router.push('/study-sessions/create')}
-          >
-            Create Your First Session
-          </Button>
+          <Link href="/study-session/create">
+            <Button 
+              variant="outline" 
+              className="mt-4"
+              leftIcon={<PlusCircle className="h-4 w-4" />}
+            >
+              Create Your First Session
+            </Button>
+          </Link>
         </div>
       ) : (
         <div className="space-y-4">
@@ -215,8 +221,8 @@ export default function StudySessionsPage() {
                         <p className="text-text-secondary text-sm">{session.subject}</p>
                       </div>
                       <Badge 
-                        variant="primary"
-                        glow={statusBadge.variant === 'accent'}
+                        variant={statusBadge.variant === 'info' ? 'default' : statusBadge.variant}
+                        glow={statusBadge.glow}
                       >
                         {statusBadge.text}
                       </Badge>
@@ -227,7 +233,7 @@ export default function StudySessionsPage() {
                     </p>
                     
                     <div className="flex flex-wrap items-center justify-between mt-auto">
-                      <div className="flex items-center">
+                      {/* <div className="flex items-center">
                         <div className="flex -space-x-2 mr-2">
                           {session.participants.slice(0, 3).map((participant, i) => (
                             <Avatar 
@@ -246,29 +252,31 @@ export default function StudySessionsPage() {
                         <span className="text-text-secondary text-xs">
                           {session.participants.length} participant{session.participants.length !== 1 ? 's' : ''}
                         </span>
-                      </div>
+                      </div> */}
                       
                       <div className="flex items-center mt-2 sm:mt-0">
                         {session.status === 'in-progress' && (
-                          <Button 
-                            variant="accent" 
-                            size="sm"
-                            leftIcon={<Zap className="h-3.5 w-3.5" />}
-                            className="mr-2"
-                            onClick={() => router.push(`/study-session`)}
-                          >
-                            Join Now
-                          </Button>
+                          <Link href="/study-session">
+                            <Button 
+                              variant="accent" 
+                              size="sm"
+                              leftIcon={<Zap className="h-3.5 w-3.5" />}
+                              className="mr-2 cursor-pointer bg-purple-600 hover:bg-purple-700"
+                            >
+                              Join Now
+                            </Button>
+                          </Link>
                         )}
                         
-                        <Button 
-                          variant="ghost" 
-                          size="sm"
-                          rightIcon={<ChevronRight className="h-4 w-4" />}
-                          onClick={() => router.push(`/study-sessions/${session.id}`)}
-                        >
-                          Details
-                        </Button>
+                        <Link href={`/study-session/${session.id}`}>
+                          <Button 
+                            variant="ghost" 
+                            size="sm"
+                            rightIcon={<ChevronRight className="h-4 w-4" />}
+                          >
+                            Details
+                          </Button>
+                        </Link>
                       </div>
                     </div>
                   </div>
