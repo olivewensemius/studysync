@@ -18,12 +18,12 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Avatar } from '@/components/ui/avatar';
 import Link from 'next/link';
-import StudyGroupsSection from "@/app/dashboard/StudyGroupsSection";
-import FlashCardsSection from "@/app/dashboard/FlashCardsSection";
-import StudySessionSection from "@/app/dashboard/StudySessionSection";
-import DashboardHeader from "@/app/dashboard/DashboardHeaderSection";
-import RecentActivitySection from "@/app/dashboard/RecentActivitySection";
-import StatsCardsSection from "@/app/dashboard/StatsCardSection";
+import StudyGroupsSection from "@/components/dashboard/StudyGroupsSection";
+import FlashCardsSection from "@/components/dashboard/FlashCardsSection";
+import StudySessionSection from "@/components/dashboard/StudySessionSection";
+import DashboardHeader from "@/components/dashboard/DashboardHeaderSection";
+import RecentActivitySection from "@/components/dashboard/RecentActivitySection";
+import StatsCardsSection from "@/components/dashboard/StatsCardSection";
 
 // Mock data
 const studyGroups = [
