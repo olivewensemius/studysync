@@ -8,7 +8,7 @@ import {
 import { Card } from '@/components/ui/card';
 import { Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { fetchFocusDistribution, type FocusDistribution } from '@/app/analytics/actions';
+import { fetchFocusDistribution, type FocusDistribution } from '@/app/(protected)/analytics/actions';
 
 interface FocusDistributionChartProps {
   timeframe?: string;

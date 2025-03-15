@@ -39,16 +39,23 @@ export default function CreateSessionPage() {
   });
   
   // Topics and participants state
-  const [topics, setTopics] = useState<{title: string, duration: string}[]>([
-    { title: '', duration: '30' }
-  ]);
+  const [topics, setTopics] = useState<{title: string, duration: string}[]>([]);
   
   const [invitedEmails, setInvitedEmails] = useState<string[]>([]);
   const [newEmail, setNewEmail] = useState('');
   const [newTopic, setNewTopic] = useState({ title: '', duration: '30' });
+  const [showTopicInput, setShowTopicInput] = useState(false);
   
   // Form errors state
   const [errors, setErrors] = useState<{[key: string]: string}>({});
+  
+  // Add new state for resources
+  const [resources, setResources] = useState<{title: string, type: string, url: string}[]>([]);
+  const [newResource, setNewResource] = useState({ title: '', type: 'PDF', url: '' });
+  const [showResourceInput, setShowResourceInput] = useState(false);
+
+  // Resource types
+  const resourceTypes = ['PDF', 'URL', 'Document', 'Video', 'Image', 'Other'];
   
   // Handle form field changes
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
@@ -73,6 +80,11 @@ export default function CreateSessionPage() {
   
   // Add new topic
   const addTopic = () => {
+    if (!showTopicInput) {
+      setShowTopicInput(true);
+      return;
+    }
+
     if (newTopic.title.trim() === '') {
       setErrors({ ...errors, newTopic: 'Topic title is required' });
       return;
@@ -81,6 +93,7 @@ export default function CreateSessionPage() {
     setTopics([...topics, { ...newTopic }]);
     setNewTopic({ title: '', duration: '30' });
     setErrors({ ...errors, newTopic: '' });
+    setShowTopicInput(false);
   };
   
   // Remove topic
@@ -117,6 +130,36 @@ export default function CreateSessionPage() {
   // Remove participant email
   const removeParticipant = (email: string) => {
     setInvitedEmails(invitedEmails.filter(e => e !== email));
+  };
+  
+  // Add new resource
+  const addResource = () => {
+    if (!showResourceInput) {
+      setShowResourceInput(true);
+      return;
+    }
+
+    if (newResource.title.trim() === '') {
+      setErrors({ ...errors, newResource: 'Resource title is required' });
+      return;
+    }
+
+    if (newResource.url.trim() === '') {
+      setErrors({ ...errors, newResource: 'Resource URL is required' });
+      return;
+    }
+
+    setResources([...resources, { ...newResource }]);
+    setNewResource({ title: '', type: 'PDF', url: '' });
+    setErrors({ ...errors, newResource: '' });
+    setShowResourceInput(false);
+  };
+
+  // Remove resource
+  const removeResource = (index: number) => {
+    const updatedResources = [...resources];
+    updatedResources.splice(index, 1);
+    setResources(updatedResources);
   };
   
   // Handle form submission
@@ -159,7 +202,9 @@ export default function CreateSessionPage() {
         description: formData.description,
         location: formData.location,
         locationDetails: formData.locationDetails,
-        participantEmails: invitedEmails
+        participantEmails: invitedEmails,
+        resources: resources,
+        topics: topics // Add topics to the session creation
       });
 
       // Redirect to sessions list on success
@@ -358,17 +403,17 @@ export default function CreateSessionPage() {
               {topics.map((topic, index) => (
                 <div 
                   key={index} 
-                  className="flex items-center space-x-2 p-3 rounded-lg bg-card-border/10 border border-card-border/30"
+                  className="flex items-center space-x-2 p-4 rounded-lg bg-primary-500/10 border-2 border-primary-500/30"
                 >
-                  <div className="h-6 w-6 rounded-full bg-primary-500/20 flex items-center justify-center">
-                    <span className="text-primary-400 text-xs font-medium">{index + 1}</span>
+                  <div className="h-7 w-7 rounded-full bg-primary-500/30 flex items-center justify-center">
+                    <span className="text-primary-400 text-sm font-bold">{index + 1}</span>
                   </div>
                   <div className="flex-grow">
                     <Input
                       value={topic.title}
                       onChange={(e) => handleTopicChange(index, 'title', e.target.value)}
                       placeholder="Topic title"
-                      className="border-none bg-transparent px-0 py-0 h-auto"
+                      className="border-none bg-transparent px-0 py-0 h-auto text-lg font-medium text-primary-400"
                     />
                   </div>
                   <div className="flex items-center space-x-2">
@@ -384,9 +429,9 @@ export default function CreateSessionPage() {
                     <button
                       type="button"
                       onClick={() => removeTopic(index)}
-                      className="text-text-muted hover:text-red-400 p-1"
+                      className="text-primary-400 hover:text-red-400 p-1"
                     >
-                      <Trash2 className="h-4 w-4" />
+                      <Trash2 className="h-5 w-5" />
                     </button>
                   </div>
                 </div>
@@ -395,31 +440,44 @@ export default function CreateSessionPage() {
           )}
           
           {/* Add New Topic */}
-          <div className="flex items-center space-x-2">
-            <Input
-              value={newTopic.title}
-              onChange={(e) => setNewTopic({ ...newTopic, title: e.target.value })}
-              placeholder="Add a new topic"
-              className={errors.newTopic ? 'border-red-500' : ''}
-            />
-            <Input
-              type="number"
-              min="5"
-              step="5"
-              value={newTopic.duration}
-              onChange={(e) => setNewTopic({ ...newTopic, duration: e.target.value })}
-              className="w-16 text-center"
-            />
-            <span className="text-text-secondary text-sm">min</span>
+          {showTopicInput ? (
+            <div className="flex items-center space-x-2">
+              <Input
+                value={newTopic.title}
+                onChange={(e) => setNewTopic({ ...newTopic, title: e.target.value })}
+                placeholder="Add a new topic"
+                className={`text-lg ${errors.newTopic ? 'border-red-500' : 'border-primary-500/50'}`}
+              />
+              <Input
+                type="number"
+                min="5"
+                step="5"
+                value={newTopic.duration}
+                onChange={(e) => setNewTopic({ ...newTopic, duration: e.target.value })}
+                className="w-20 text-center text-lg border-primary-500/50"
+              />
+              <span className="text-primary-400 text-sm font-medium">min</span>
+              <Button
+                type="button"
+                variant="outline"
+                size="icon"
+                onClick={addTopic}
+                className="border-primary-500/50 hover:bg-primary-500/20"
+              >
+                <Plus className="h-5 w-5" />
+              </Button>
+            </div>
+          ) : (
             <Button
               type="button"
               variant="outline"
-              size="icon"
               onClick={addTopic}
+              className="w-full text-lg border-primary-500/50 hover:bg-primary-500/20"
             >
-              <Plus className="h-4 w-4" />
+              <Plus className="h-5 w-5 mr-2" />
+              Add Topic
             </Button>
-          </div>
+          )}
           {errors.newTopic && <p className="text-red-500 text-xs mt-1">{errors.newTopic}</p>}
           
           <div className="mt-4 text-text-secondary text-sm flex items-center">
@@ -428,6 +486,93 @@ export default function CreateSessionPage() {
               Total duration: {topics.reduce((acc, topic) => acc + (parseInt(topic.duration) || 0), 0)} minutes
             </span>
           </div>
+        </Card>
+        
+        {/* Resources Card */}
+        <Card className="dark-card">
+          <h2 className="text-lg font-bold text-text-primary mb-6">Study Resources</h2>
+          
+          {/* Existing Resources */}
+          {resources.length > 0 && (
+            <div className="space-y-3 mb-4">
+              {resources.map((resource, index) => (
+                <div 
+                  key={index} 
+                  className="flex items-center space-x-2 p-4 rounded-lg bg-primary-500/10 border-2 border-primary-500/30"
+                >
+                  <div className="h-8 w-8 rounded-md bg-primary-500/30 flex items-center justify-center">
+                    <BookOpen className="h-4 w-4 text-primary-400" />
+                  </div>
+                  <div className="flex-grow space-y-1">
+                    <p className="text-lg font-medium text-primary-400">{resource.title}</p>
+                    <div className="flex items-center space-x-2 text-sm text-text-secondary">
+                      <span className="uppercase">{resource.type}</span>
+                      <span>•</span>
+                      <a href={resource.url} target="_blank" rel="noopener noreferrer" className="text-primary-400 hover:underline truncate">
+                        {resource.url}
+                      </a>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => removeResource(index)}
+                    className="text-primary-400 hover:text-red-400 p-1"
+                  >
+                    <Trash2 className="h-5 w-5" />
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+          
+          {/* Add New Resource */}
+          {showResourceInput ? (
+            <div className="space-y-3">
+              <Input
+                value={newResource.title}
+                onChange={(e) => setNewResource({ ...newResource, title: e.target.value })}
+                placeholder="Resource title"
+                className={errors.newResource ? 'border-red-500' : 'border-primary-500/50'}
+              />
+              <div className="flex space-x-2">
+                <select
+                  value={newResource.type}
+                  onChange={(e) => setNewResource({ ...newResource, type: e.target.value })}
+                  className="flex-shrink-0 w-32 px-3 py-2 border rounded-md bg-card-bg border-primary-500/50 text-text-primary"
+                >
+                  {resourceTypes.map(type => (
+                    <option key={type} value={type}>{type}</option>
+                  ))}
+                </select>
+                <Input
+                  value={newResource.url}
+                  onChange={(e) => setNewResource({ ...newResource, url: e.target.value })}
+                  placeholder="Resource URL"
+                  className="border-primary-500/50"
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="icon"
+                  onClick={addResource}
+                  className="border-primary-500/50 hover:bg-primary-500/20"
+                >
+                  <Plus className="h-5 w-5" />
+                </Button>
+              </div>
+              {errors.newResource && <p className="text-red-500 text-xs">{errors.newResource}</p>}
+            </div>
+          ) : (
+            <Button
+              type="button"
+              variant="outline"
+              onClick={addResource}
+              className="w-full text-lg border-primary-500/50 hover:bg-primary-500/20"
+            >
+              <Plus className="h-5 w-5 mr-2" />
+              Add Resource
+            </Button>
+          )}
         </Card>
         
         {/* Participants Card */}

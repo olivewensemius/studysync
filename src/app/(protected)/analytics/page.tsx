@@ -15,6 +15,7 @@ import {
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { generateAnalyticsPDF } from './export_func';
 import { 
   fetchAnalyticsData, 
   type SubjectAnalytics,
@@ -29,6 +30,23 @@ import FocusDistributionChart from '@/components/analytics/FocusDistributionChar
 
 export default function AnalyticsPage() {
   const [timeframe, setTimeframe] = useState('weekly');
+  const [isExporting, setIsExporting] = useState(false);
+  const [exportSuccess, setExportSuccess] = useState(false);
+
+
+  const handleExport = async () => {
+    setIsExporting(true);
+    try {
+      const doc = generateAnalyticsPDF(productivityMetrics, weeklyActivity, topSubjects);
+      doc.save(`studysync-report-${Date.now()}.pdf`);
+      setExportSuccess(true);
+      setTimeout(() => setExportSuccess(false), 3000);
+    } catch (error) {
+      console.error('Export failed:', error);
+    } finally {
+      setIsExporting(false);
+    }
+  };
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   
@@ -140,15 +158,12 @@ export default function AnalyticsPage() {
             </Button>
           </div>
           <Button 
-            variant="outline"
-            className="flex items-center" 
-            onClick={() => {
-              // Implementation for exporting analytics data
-              alert('Export functionality would go here');
-            }}
+            variant="glow" 
+            onClick={handleExport}
+            disabled={isExporting}
+            className={isExporting ? 'opacity-75 cursor-not-allowed' : ''}
           >
-            <Download className="h-4 w-4 mr-2" />
-            Export
+            {isExporting ? 'Exporting...' : 'Export'}
           </Button>
         </div>
       </div>
@@ -277,9 +292,14 @@ export default function AnalyticsPage() {
             <Button variant="outline" className="border-primary-700 text-text-primary">
               Schedule Report
             </Button>
-            <Button variant="default" className="bg-primary-600 hover:bg-primary-700">
-              Export Now
-            </Button>
+            <Button 
+                variant="glow" 
+                onClick={handleExport}
+                disabled={isExporting}
+                className={isExporting ? 'opacity-75 cursor-not-allowed' : ''}
+              >
+                {isExporting ? 'Exporting...' : 'Export Now'}
+              </Button>
           </div>
         </div>
       </Card>
