@@ -3,7 +3,7 @@
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/utils/supabase/server'
 
-export async function fetchStudyGroupById(id: string) {
+  export async function fetchStudyGroupById(id: string) {
     const supabase = await createClient();
 
     // Retrieve authenticated user
@@ -88,7 +88,7 @@ export async function fetchStudyGroupById(id: string) {
     console.log(`User ${user.id} successfully joined group ${groupId}`);
 
     revalidatePath(`/study-groups/${groupId}`);
-}
+  }
 
 
   export async function fetchGroupMembers(groupId: string) {
