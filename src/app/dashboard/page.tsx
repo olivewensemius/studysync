@@ -20,6 +20,7 @@ import { Avatar } from '@/components/ui/avatar';
 import Link from 'next/link';
 import StudyGroupsSection from "@/app/dashboard/StudyGroupsSection";
 import FlashCardsSection from "@/app/dashboard/FlashCardsSection";
+import StudySessionSection from "@/app/dashboard/StudySessionSection";
 
 // Mock data
 const upcomingSessions = [
@@ -139,81 +140,7 @@ export default function DashboardPage() {
       {/* Main Content */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Upcoming Sessions */}
-        <Card className="dark-card lg:col-span-2">
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-lg font-bold text-text-primary">Upcoming Sessions</h2>
-            <Link href="/study-session">
-              <Button variant="ghost" size="sm" rightIcon={<ChevronRight className="h-4 w-4" />}>
-                View All
-              </Button>
-            </Link>
-          </div>
-
-          <div className="space-y-3">
-            {upcomingSessions.map((session) => {
-              const sessionDate = new Date(session.date);
-              const formattedDate = sessionDate.toLocaleDateString('en-US', { 
-                weekday: 'short', 
-                month: 'short', 
-                day: 'numeric' 
-              });
-              const formattedTime = sessionDate.toLocaleTimeString('en-US', { 
-                hour: '2-digit', 
-                minute: '2-digit',
-                hour12: true
-              });
-
-              return (
-                <div 
-                  key={session.id} 
-                  className="p-3 rounded-lg border border-card-border/30 hover:border-primary-500/30 transition-colors"
-                >
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <h3 className="font-medium text-text-primary">{session.title}</h3>
-                      <div className="flex items-center mt-1 text-text-secondary text-sm">
-                        <Calendar className="h-3.5 w-3.5 mr-1.5" />
-                        <span>{formattedDate} at {formattedTime}</span>
-                        <span className="mx-2">•</span>
-                        <Clock className="h-3.5 w-3.5 mr-1.5" />
-                        <span>{session.duration} mins</span>
-                      </div>
-                    </div>
-                    <Badge variant="primary" size="sm">
-                      {session.subject}
-                    </Badge>
-                  </div>
-                  <div className="flex items-center mt-2">
-                    <div className="flex -space-x-2">
-                      {Array.from({ length: Math.min(3, session.participants) }).map((_, i) => (
-                        <Avatar 
-                          key={i}
-                          fallback={`P${i+1}`}
-                          size="xs"
-                          className="border border-card-bg"
-                        />
-                      ))}
-                    </div>
-                    {session.participants > 3 && (
-                      <span className="text-xs text-text-secondary ml-1">+{session.participants - 3} more</span>
-                    )}
-                    <Link href={`/study-session/${session.id}`} className="ml-auto">
-                      <Button variant="outline" size="sm">
-                        Details
-                      </Button>
-                    </Link>
-                  </div>
-                </div>
-              );
-            })}
-
-            <Link href="/study-session/create">
-              <Button variant="ghost" className="w-full border border-dashed border-card-border mt-3 py-2" leftIcon={<PlusCircle className="h-4 w-4" />}>
-                Schedule New Session
-              </Button>
-            </Link>
-          </div>
-        </Card>
+        <StudySessionSection />
 
         {/* Activity Feed */}
         <Card className="dark-card">
