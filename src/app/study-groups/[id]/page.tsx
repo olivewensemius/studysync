@@ -115,6 +115,11 @@ export default function StudyGroupDetailPage() {
         {leaveError && <div className="text-red-500">{leaveError}</div>}
 
         <div className="flex justify-end gap-2">
+          {group.isCreator && (
+          <Button variant="outline" onClick={() => router.push(`/study-groups/${group.id}/edit`)}>
+            Edit Group
+          </Button>
+            )}
           <Button variant="outline" onClick={() => router.push('/study-groups')}>
             Back to Groups
           </Button>
