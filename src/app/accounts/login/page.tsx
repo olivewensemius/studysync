@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Mail, Lock } from 'lucide-react';
 import Link from 'next/link';
 import { useState } from 'react';
+import Image from 'next/image';
 
 export default function LoginPage() {
   const [formData, setFormData] = useState({
@@ -40,7 +41,7 @@ export default function LoginPage() {
           className="w-full mb-4 flex items-center justify-center gap-2 cursor-pointer"
           onClick={loginGoogle}
         >
-          <img src="https://www.google.com/favicon.ico" alt="Google" className="w-4 h-4" />
+          <Image src="https://www.google.com/favicon.ico" alt="Google" className="w-4 h-4" />
           Sign in with Google
         </Button>
 
@@ -50,7 +51,7 @@ export default function LoginPage() {
           className="w-full mb-4 flex items-center justify-center gap-2 cursor-pointer"
           onClick={loginDiscord}
         >
-         <img src="/discord.svg" alt="Discord" className="w-4 h-4" />
+         <Image src="/discord.svg" alt="Discord" className="w-4 h-4" />
           Sign in with Discord
         </Button>
 
@@ -111,7 +112,7 @@ export default function LoginPage() {
         </form>
         
         <p className="text-center text-sm mt-6 text-gray-300">
-          Don't have an account?{' '}
+          Don&apos;t have an account?{' '}
           <Link href="/accounts/signup">
             <span className="text-indigo-400 hover:text-indigo-300 underline">Register</span>
           </Link>

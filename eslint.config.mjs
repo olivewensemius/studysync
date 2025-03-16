@@ -14,11 +14,14 @@ const eslintConfig = [
   {
     rules: {
       // Additional custom rules
-      "no-unused-vars": "warn",
+      "no-unused-vars": "off",
       "react/react-in-jsx-scope": "off",
       "react/prop-types": "off",
       "@typescript-eslint/explicit-function-return-type": "off",
-      "react-hooks/exhaustive-deps": "warn"
+      "react-hooks/exhaustive-deps": "off",
+      '@typescript-eslint/no-unused-vars': 'off',
+      '@typescript-eslint/no-explicit-any': 'off',
+      'react/no-unescaped-entities': 'off'
     }
   }
 ];

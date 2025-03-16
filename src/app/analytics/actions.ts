@@ -53,7 +53,7 @@ export async function fetchAnalyticsData(timeframe: string = 'weekly'): Promise<
   try {
     // Define the time range based on selected timeframe
     const now = new Date();
-    let startDate = new Date();
+    const startDate = new Date();
     
     if (timeframe === 'weekly') {
       startDate.setDate(now.getDate() - 7);
@@ -382,7 +382,7 @@ function calculateStudyStreak(sessions: any[]): number {
   today.setHours(0, 0, 0, 0);
   
   let streak = 0;
-  let currentDate = new Date(today);
+  const currentDate = new Date(today);
   
   // Look back at most 30 days to find the streak
   for (let i = 0; i < 30; i++) {

@@ -1,6 +1,6 @@
 'use client';
 // ... existing imports ...
-
+import Image from 'next/image';
 import { loginGoogle, loginDiscord } from '../login/actions';
 import { signup } from './actions'
 import { Card } from '@/components/ui/card';
@@ -63,7 +63,7 @@ export default function RegisterPage() {
           className="w-full mb-4 flex items-center justify-center gap-2 cursor-pointer"
           onClick={ loginGoogle}
         >
-          <img src="https://www.google.com/favicon.ico" alt="Google" className="w-4 h-4" />
+          <Image src="https://www.google.com/favicon.ico" alt="Google" className="w-4 h-4" />
           Sign up with Google
         </Button>
         <Button
@@ -72,7 +72,7 @@ export default function RegisterPage() {
           className="w-full mb-4 flex items-center justify-center gap-2 cursor-pointer"
           onClick={loginDiscord}
         >
-         <img src="/discord.svg" alt="Discord" className="w-4 h-4" />
+         <Image src="/discord.svg" alt="Discord" className="w-4 h-4" />
           Sign up with Discord
         </Button>
         <div className="relative mb-4">

@@ -33,12 +33,37 @@ export async function fetchStudyGroupById(id: string) {
 }
 
 // Re-export these functions from the main actions file
-export {
-  joinStudyGroup,
-  leaveStudyGroup, 
-  fetchGroupMembers,
-  updateStudyGroup,
-  getPendingInvitations,
-  acceptGroupInvitation,
-  declineGroupInvitation
-} from '../actions';
+export async function joinStudyGroup(groupId: string) {
+  const { joinStudyGroup } = await import('../actions');
+  return joinStudyGroup(groupId);
+}
+
+export async function leaveStudyGroup(groupId: string) {
+  const { leaveStudyGroup } = await import('../actions');
+  return leaveStudyGroup(groupId);
+}
+
+export async function fetchGroupMembers(groupId: string) {
+  const { fetchGroupMembers } = await import('../actions');
+  return fetchGroupMembers(groupId);
+}
+
+export async function updateStudyGroup(groupId: string, data: { name?: string; description?: string }) {
+  const { updateStudyGroup } = await import('../actions');
+  return updateStudyGroup(groupId, data);
+}
+
+export async function getPendingInvitations() {
+  const { getPendingInvitations } = await import('../actions');
+  return getPendingInvitations();
+}
+
+export async function acceptGroupInvitation(invitationId: string) {
+  const { acceptGroupInvitation } = await import('../actions');
+  return acceptGroupInvitation(invitationId);
+}
+
+export async function declineGroupInvitation(invitationId: string) {
+  const { declineGroupInvitation } = await import('../actions');
+  return declineGroupInvitation(invitationId);
+}

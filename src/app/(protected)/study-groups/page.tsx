@@ -5,6 +5,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
+import Image from "next/image";
 import { 
   Users, 
   PlusCircle, 
@@ -433,7 +434,7 @@ const GroupCard: React.FC<{ group: any; router: any; showDelete: boolean; userId
                     members.map((member, index) => (
                       <div key={index} className="flex items-center space-x-3 mb-2 last:mb-8">
                         {member.avatar_url ? (
-                          <img src={member.avatar_url} alt={member.display_name} className="w-6 h-6 rounded-full" />
+                          <Image src={member.avatar_url} alt={member.display_name} className="w-6 h-6 rounded-full" />
                         ) : (
                           <div className="w-6 h-6 bg-gray-300 rounded-full"></div>
                         )}
