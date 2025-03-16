@@ -3,14 +3,41 @@
 import { createClient } from '@/utils/supabase/server'
 
 export async function fetchStudySessions() {
-  const supabase = await createClient()
+  const supabase = await createClient();
 
+  // Get the authenticated user
+  const { data: { user }, error: userError } = await supabase.auth.getUser();
+
+  if (userError) {
+    throw new Error(userError.message);
+  }
+
+  if (!user) {
+    throw new Error('User not authenticated');
+  }
+
+  // Fetch session IDs where the user is a participant
+  const { data: participantSessions, error: participantError } = await supabase
+    .from("study_session_participants")
+    .select("session_id")
+    .eq("profile", user.id);
+
+  if (participantError) {
+    throw new Error("Error fetching participant sessions: " + participantError.message);
+  }
+
+  const participantSessionIds = participantSessions.map(session => session.session_id);
+
+  // Fetch study sessions where the user is either:
+  // - The creator (`created_by`)
+  // - A participant (session_id is in `participantSessionIds`)
   const { data, error } = await supabase
-    .from('study_sessions')
-    .select('*')
+    .from("study_sessions")
+    .select("*")
+    .or(`created_by.eq.${user.id}, id.in.(${participantSessionIds.join(",")})`);
 
   if (error) {
-    throw new Error(error.message)
+    throw new Error(error.message);
   }
 
   return data;
@@ -182,7 +209,6 @@ export async function fetchSingleStudySession(sessionId: string) {
 
   return transformedSession;
 }
-
 
 export async function fetchSessionTopics(sessionId: string) {
     const supabase = await createClient()
