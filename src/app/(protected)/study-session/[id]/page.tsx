@@ -43,6 +43,7 @@ export default function StudySessionDetailPage() {
   const [resources, setResources] = useState<Awaited<ReturnType<typeof fetchSessionResources>> | null>(null);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [showCopied, setShowCopied] = useState(false);
 
   useEffect(() => {
     const loadSessionData = async () => {
@@ -100,6 +101,12 @@ export default function StudySessionDetailPage() {
     }
   };
 
+  const handleShare = async () => {
+    await navigator.clipboard.writeText(window.location.href);
+    setShowCopied(true);
+    setTimeout(() => setShowCopied(false), 2000);
+  };
+
   if (loading || !session) {
     return (
       <div className="flex justify-center items-center h-64">
@@ -138,9 +145,18 @@ export default function StudySessionDetailPage() {
         </div>
         
         <div className="flex flex-wrap gap-2">
-          <Button variant="ghost">
-            <Share2 className="h-4 w-4 mr-2" />
-            Share
+          <Button 
+            variant="ghost"
+            onClick={handleShare}
+          >
+            {showCopied ? (
+              'Copied!'
+            ) : (
+              <>
+                <Share2 className="h-4 w-4 mr-2" />
+                Share
+              </>
+            )}
           </Button>
           <Button variant="ghost">
             <Bookmark className="h-4 w-4 mr-2" />
