@@ -16,7 +16,6 @@ export async function fetchStudySessions() {
     throw new Error('User not authenticated');
   }
 
-  // Fetch session IDs where the user is a participant
   const { data: participantSessions, error: participantError } = await supabase
     .from("study_session_participants")
     .select("session_id")
@@ -121,7 +120,7 @@ export async function createStudySession(data: {
     }
 
     if (profiles && profiles.length > 0) {
-      // Create participant entries linking profiles to the session
+
       const participantData = profiles.map(profile => ({
         session_id: sessionData.id,
         profile: profile.id,
@@ -271,9 +270,123 @@ export async function updateStudySession(sessionId: string, data: {
   description?: string;
   location?: string;
   locationDetails?: string;
-  participantEmails?: string[];
+  participantEmails?: string[]; 
   resources?: { title: string; type: string; url: string; }[];
   topics?: { title: string; duration: string; }[];
 }) {
-console.log(data)
+  const supabase = await createClient();
+  // Update the study session
+  const { error: sessionError } = await supabase
+    .from('study_sessions')
+    .update({
+      title: data.title,
+      subject: data.subject,
+      date: data.date,
+      duration: data.duration,
+      description: data.description,
+      location: data.location,
+      location_details: data.locationDetails,
+    })
+    .eq('id', sessionId);
+
+  if (sessionError) {
+    throw new Error('Error updating study session: ' + sessionError.message);
+  }
+
+  if (data.participantEmails && data.participantEmails.length > 0) {
+
+    //select pariticpants before delete
+    const { data: profiles, error: profilesError } = await supabase
+      .from('profiles')
+      .select('id')
+      .in('email', data.participantEmails);
+
+    if (profilesError) {
+      throw new Error('Error fetching participant profiles: ' + profilesError.message);
+    }
+
+    // Delete cuur partiicpants
+    const { error: deleteError } = await supabase
+      .from('study_session_participants')
+      .delete()
+      .eq('session_id', sessionId);
+
+    if (deleteError) {
+      throw new Error('Error removing existing participants: ' + deleteError.message);
+    }
+
+    // Add new participants if profiles were found
+    if (profiles && profiles.length > 0) {
+      const participantData = profiles.map(profile => ({
+        session_id: sessionId,
+        profile: profile.id,
+      }));
+
+      const { error: participantsError } = await supabase
+        .from('study_session_participants')
+        .insert(participantData);
+
+      if (participantsError) {
+        throw new Error('Error adding participants: ' + participantsError.message);
+      }
+    }
+  }
+
+  // Handle topics if provided
+  if (data.topics && data.topics.length > 0) {
+    // Delete 
+    const { error: deleteTopicsError } = await supabase
+      .from('study_session_topics')
+      .delete()
+      .eq('session_id', sessionId);
+
+    if (deleteTopicsError) {
+      throw new Error('Error removing existing topics: ' + deleteTopicsError.message);
+    }
+
+    // Add new 
+    const topicData = data.topics.map(topic => ({
+      session_id: sessionId,
+      topic_name: topic.title,
+      duration: parseInt(topic.duration),
+      completed: false
+    }));
+
+    const { error: topicsError } = await supabase
+      .from('study_session_topics')
+      .insert(topicData);
+
+    if (topicsError) {
+      throw new Error('Error adding topics: ' + topicsError.message);
+    }
+  }
+
+  
+  if (data.resources && data.resources.length > 0) {
+    // Delete eresource
+    const { error: deleteResourcesError } = await supabase
+      .from('study_session_resources')
+      .delete()
+      .eq('session_id', sessionId);
+
+    if (deleteResourcesError) {
+      throw new Error('Error removing existing resources: ' + deleteResourcesError.message);
+    }
+
+    // Add n
+    const resourceData = data.resources.map(resource => ({
+      session_id: sessionId,
+      title: resource.title,
+      type: resource.type,
+      url: resource.url
+    }));
+
+    const { error: resourcesError } = await supabase
+      .from('study_session_resources')
+      .insert(resourceData);
+
+    if (resourcesError) {
+      throw new Error('Error adding resources: ' + resourcesError.message);
+    }
+  }
 }
