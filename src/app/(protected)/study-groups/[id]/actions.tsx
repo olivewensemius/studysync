@@ -37,5 +37,8 @@ export {
   joinStudyGroup,
   leaveStudyGroup, 
   fetchGroupMembers,
-  updateStudyGroup
+  updateStudyGroup,
+  getPendingInvitations,
+  acceptGroupInvitation,
+  declineGroupInvitation
 } from '../actions';

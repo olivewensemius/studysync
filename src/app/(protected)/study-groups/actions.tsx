@@ -368,6 +368,7 @@ export async function inviteUserToGroup(groupId: string, userId: string) {
   return { success: true };
 }
 
+// Check this function in your actions.tsx
 export async function getPendingInvitations() {
   const supabase = await createClient();
 
@@ -377,7 +378,6 @@ export async function getPendingInvitations() {
     throw new Error('You must be logged in.');
   }
 
-  // Get invitations with group details
   const { data, error } = await supabase
     .from('study_group_invitations')
     .select(`
@@ -388,9 +388,8 @@ export async function getPendingInvitations() {
       invited_by,
       study_groups(id, name, description)
     `)
-    .eq('user_id', user.id)
-    .eq('status', 'pending');
-
+    .eq('user_id', user.id) 
+    .eq('status', 'pending');  
   if (error) {
     console.error('Error fetching invitations:', error);
     throw new Error('Failed to fetch invitations.');

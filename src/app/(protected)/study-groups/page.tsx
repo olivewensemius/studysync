@@ -16,7 +16,8 @@ import {
   UserPlus,
   X,
   Edit3,
-  ArrowLeft
+  ArrowLeft,
+  Bell
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { 
@@ -27,10 +28,12 @@ import {
   updateStudyGroup, 
   fetchGroupMembers, 
   createStudyGroup,
-  inviteUserToGroup 
+  inviteUserToGroup,
+  getPendingInvitations
 } from "./actions";
 import { createClient } from '@/utils/supabase/client';
 import UserSearchComponent from "@/components/study-groups/UserSearchComponent";
+import GroupInvitationsComponent from "@/components/study-groups/GroupInvitationsComponent";
 
 export default function StudyGroupsPage() {
   const router = useRouter();
@@ -45,80 +48,87 @@ export default function StudyGroupsPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [activeSection, setActiveSection] = useState("my-groups");
   // State for creating a group
- const [name, setName] = useState("");
- const [description, setDescription] = useState("");
- const [creating, setCreating] = useState(false);
- const [showInviteForm, setShowInviteForm] = useState(false);
- const [currentUserId, setCurrentUserId] = useState("");
+  const [name, setName] = useState("");
+  const [description, setDescription] = useState("");
+  const [creating, setCreating] = useState(false);
+  const [showInviteForm, setShowInviteForm] = useState(false);
+  const [currentUserId, setCurrentUserId] = useState("");
+  // State for invitations
+  const [invitationCount, setInvitationCount] = useState(0);
+
   // Study groups list loading effect
-useEffect(() => {
-  const loadGroups = async () => {
+  useEffect(() => {
+    const loadGroups = async () => {
+      setLoading(true);
+      try {
+        const data = await fetchStudyGroups();
+        setGroups(data);
+        
+        // Get the count of pending invitations
+        const invitations = await getPendingInvitations();
+        setInvitationCount(invitations.length);
+      } catch (err) {
+        setError("Failed to load study groups.");
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadGroups();
+  }, []);
+
+  // Handle group creation
+  const handleCreateGroup = async () => {
+    if (!name.trim() || !description.trim()) {
+      setError("Both 'Group Name' and 'Description' are required.");
+      return;
+    }
+
+    setCreating(true);
+    setError("");
+    
+    try {
+      await createStudyGroup({ name, description });
+      setName("");
+      setDescription("");
+      setActiveSection("my-groups"); // Switch back after creation
+      window.location.reload(); // Refresh the page
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setCreating(false);
+    }
+  };
+
+  // Load single group details
+  const loadGroup = async (id: string) => {
     setLoading(true);
     try {
       const data = await fetchStudyGroups();
       setGroups(data);
-    } catch (err) {
-      setError("Failed to load study groups.");
+      
+      // Get current user ID from auth
+      const supabase = await createClient();
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        setCurrentUserId(user.id);
+      }
+      
+    } catch (err: any) {
+      setError(err.message);
     } finally {
       setLoading(false);
     }
   };
-  loadGroups();
-}, []);
 
-// Handle group creation
-const handleCreateGroup = async () => {
-  if (!name.trim() || !description.trim()) {
-    setError("Both 'Group Name' and 'Description' are required.");
-    return;
-  }
-
-  setCreating(true);
-  setError("");
-  
-  try {
-    await createStudyGroup({ name, description });
-    setName("");
-    setDescription("");
-    setActiveSection("my-groups"); // Switch back after creation
-    window.location.reload(); // Refresh the page
-  } catch (err: any) {
-    setError(err.message);
-  } finally {
-    setCreating(false);
-  }
-};
-
-// Load single group details
-const loadGroup = async (id: string) => {
-  setLoading(true);
-  try {
-    const data = await fetchStudyGroups();
-    setGroups(data);
-    
-    // Get current user ID from auth
-    const supabase = await createClient();
-    const { data: { user } } = await supabase.auth.getUser();
-    if (user) {
-      setCurrentUserId(user.id);
+  const handleInviteUser = async (userId: string, groupId: string) => {
+    try {
+      await inviteUserToGroup(groupId, userId);
+      return true;
+    } catch (err) {
+      console.error("Error inviting user:", err);
+      return false;
     }
-    
-  } catch (err: any) {
-    setError(err.message);
-  } finally {
-    setLoading(false);
-  }
-};
-
-const handleInviteUser = async (userId: string, groupId: string) => {
-  try {
-    await inviteUserToGroup(groupId, userId);
-    return true;
-  } catch (err) {
-    console.error("Error inviting user:", err);
-    return false;
-  }
-};
+  };
 
   if (loading) return <div className="p-8">Loading...</div>;
   if (error) return <div className="p-8">Error: {error}</div>;
@@ -133,6 +143,13 @@ const handleInviteUser = async (userId: string, groupId: string) => {
           <SidebarButton label="Groups You Created" icon={ClipboardList} active={activeSection === "created-groups"} onClick={() => setActiveSection("created-groups")} />
           <SidebarButton label="Find Study Groups" icon={LayoutGrid} active={activeSection === "find-groups"} onClick={() => setActiveSection("find-groups")} />
           <SidebarButton label="Create Group" icon={FilePlus} active={activeSection === "create-group"} onClick={() => setActiveSection("create-group")} />
+          <SidebarButton 
+            label="Group Invitations" 
+            icon={Bell} 
+            active={activeSection === "invitations"} 
+            onClick={() => setActiveSection("invitations")} 
+            badge={invitationCount > 0 ? invitationCount : undefined}
+          />
         </nav>
       </div>
 
@@ -147,6 +164,8 @@ const handleInviteUser = async (userId: string, groupId: string) => {
               ? "Groups You Created"
               : activeSection === "find-groups"
               ? "Find Study Groups"
+              : activeSection === "invitations"
+              ? "Group Invitations"
               : "Create a Study Group"}
           </h1>
         </div>
@@ -167,8 +186,9 @@ const handleInviteUser = async (userId: string, groupId: string) => {
         {activeSection === "my-groups" && <GroupSection groups={groups.myGroups} router={router} showDelete={false} userId={groups.userId} />}
         {activeSection === "created-groups" && <GroupSection groups={groups.createdGroups} router={router} showDelete={true} userId={groups.userId} />}
         {activeSection === "find-groups" && <GroupSection groups={groups.allGroups.filter(group => group.name.toLowerCase().includes(searchTerm.toLowerCase()))} router={router} showDelete={false} userId={groups.userId} />}
+        {activeSection === "invitations" && <GroupInvitationsComponent />}
 
-          {/* Create Study Group Form - Inline UI */}
+        {/* Create Study Group Form - Inline UI */}
         {activeSection === "create-group" && (
           <Card className="p-6 w-full rounded-lg dark-card">
             <div className="space-y-4 flex pb-4">
@@ -182,17 +202,17 @@ const handleInviteUser = async (userId: string, groupId: string) => {
               />
             </div>
 
-              <div className="space-y-4 flex">
-                <label className="w-1/2 text-xl block font-medium">Description</label>
-                <textarea
-                  className="w-full px-3 py-2 border rounded-md text-sm focus:ring-2 focus:ring-primary-500 bg-card-bg text-text-primary"
-                  value={description}
-                  onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setDescription(e.target.value)}
-                  placeholder="Briefly describe your group"
-                  required
-                  rows={4}
-                />
-              </div>
+            <div className="space-y-4 flex">
+              <label className="w-1/2 text-xl block font-medium">Description</label>
+              <textarea
+                className="w-full px-3 py-2 border rounded-md text-sm focus:ring-2 focus:ring-primary-500 bg-card-bg text-text-primary"
+                value={description}
+                onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setDescription(e.target.value)}
+                placeholder="Briefly describe your group"
+                required
+                rows={4}
+              />
+            </div>
 
             {error && <p className="text-red-500 text-sm text-center">{error}</p>}
 
@@ -214,10 +234,26 @@ const handleInviteUser = async (userId: string, groupId: string) => {
 }
 
 /* Sidebar Button Component */
-const SidebarButton: React.FC<{ label: string; icon: any; active: boolean; onClick: () => void }> = ({ label, icon: Icon, active, onClick }) => (
-  <button className={`flex items-center space-x-3 px-4 py-2 rounded-md w-full text-left transition-all ${active ? "bg-primary-500 text-white" : "text-text-primary hover:bg-primary-500/20"}`} onClick={onClick}>
-    <Icon className="h-5 w-5" />
-    <span>{label}</span>
+const SidebarButton: React.FC<{ 
+  label: string; 
+  icon: any; 
+  active: boolean; 
+  onClick: () => void;
+  badge?: number;
+}> = ({ label, icon: Icon, active, onClick, badge }) => (
+  <button 
+    className={`flex items-center justify-between space-x-3 px-4 py-2 rounded-md w-full text-left transition-all ${active ? "bg-primary-500 text-white" : "text-text-primary hover:bg-primary-500/20"}`} 
+    onClick={onClick}
+  >
+    <div className="flex items-center space-x-3">
+      <Icon className="h-5 w-5" />
+      <span>{label}</span>
+    </div>
+    {badge !== undefined && (
+      <Badge variant={active ? "secondary" : "primary"} className="ml-auto">
+        {badge}
+      </Badge>
+    )}
   </button>
 );
 
