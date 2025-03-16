@@ -58,7 +58,6 @@ export default function StudySessionDetailPage() {
         setResources(resourcesData);
       } catch (error) {
         console.error('Error loading session:', error);
-        // You might want to show an error message to the user
       } finally {
         setLoading(false);
       }
@@ -67,34 +66,35 @@ export default function StudySessionDetailPage() {
     loadSessionData();
   }, [sessionId]);
 
-  // Format time string
+ 
   const formatTime = (dateString: string) => {
     const date = new Date(dateString);
     return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   };
 
-  // Function to get status badge styling
   const getStatusBadge = (status: string) => {
     switch(status) {
       case 'scheduled':
-        return { variant: 'primary' as const, text: 'Scheduled' };
+        return { variant: 'warning' as const, text: 'Scheduled' };
       case 'in-progress':
         return { variant: 'success' as const, text: 'In Progress', glow: true };
       case 'completed':
-        return { variant: 'secondary' as const, text: 'Completed' };
-      default:
+        return { variant: 'info' as const, text: 'Completed' };
+      default:  
         return { variant: 'default' as const, text: status };
     }
   };
 
+
+  
   const handleDeleteSession = async () => {
     try {
       setIsDeleting(true);
       await deleteStudySession(sessionId);
-      router.push('/study-session'); // Redirect to sessions list after deletion
+      router.push('/study-session'); // Redirect to sessions list after delete
     } catch (error) {
       console.error('Error deleting session:', error);
-      // You might want to show an error message to the user
+ 
     } finally {
       setIsDeleting(false);
       setShowDeleteDialog(false);
@@ -137,7 +137,7 @@ export default function StudySessionDetailPage() {
         <div>
           <div className="flex items-center flex-wrap gap-2">
             <h1 className="text-2xl font-bold text-text-primary">{session.title}</h1>
-            <Badge variant={statusBadge.variant} glow={statusBadge.variant === 'success'}>
+            <Badge variant={statusBadge.variant as 'default' | 'warning' | 'success'} glow={statusBadge.variant === 'success'}>
               {statusBadge.text}
             </Badge>
           </div>

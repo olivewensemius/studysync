@@ -27,9 +27,6 @@ export async function fetchStudySessions() {
 
   const participantSessionIds = participantSessions.map(session => session.session_id);
 
-  // Fetch study sessions where the user is either:
-  // - The creator (`created_by`)
-  // - A participant (session_id is in `participantSessionIds`)
   const { data, error } = await supabase
     .from("study_sessions")
     .select("*")
@@ -196,7 +193,7 @@ export async function fetchSingleStudySession(sessionId: string) {
   const transformedSession = {
     ...session,
     participants: session.study_session_participants?.map(participant => ({
-      id: participant.profiles.id,
+      id: participant.profiles.id , 
       display_name: participant.profiles.display_name,
       avatar_url: participant.profiles.avatar_url,
       email: participant.profiles.email,
@@ -268,6 +265,7 @@ export async function updateStudySession(sessionId: string, data: {
   date?: string;
   duration?: number;
   description?: string;
+  status?:string;
   location?: string;
   locationDetails?: string;
   participantEmails?: string[]; 
@@ -286,6 +284,7 @@ export async function updateStudySession(sessionId: string, data: {
       description: data.description,
       location: data.location,
       location_details: data.locationDetails,
+      status: data.status,
     })
     .eq('id', sessionId);
 

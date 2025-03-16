@@ -18,6 +18,8 @@ import {
 import { useRouter, useParams } from 'next/navigation';
 import { fetchSingleStudySession, fetchSessionTopics, fetchSessionResources, updateStudySession } from '../../actions';
 
+
+//Edit page to eddit a study session
 export default function EditStudySessionPage() {
   const router = useRouter();
   const params = useParams();
@@ -33,9 +35,10 @@ export default function EditStudySessionPage() {
     description: '',
     location: 'Online',
     locationDetails: '',
+    status: 'scheduled'
   });
   
-  // Topics and participants state
+  // Bunch of states
   const [topics, setTopics] = useState<{id?: string, title: string, duration: string}[]>([]);
   const [resources, setResources] = useState<{id?: string, title: string, type: string, url: string}[]>([]);
   const [invitedEmails, setInvitedEmails] = useState<string[]>([]);
@@ -45,13 +48,14 @@ export default function EditStudySessionPage() {
   const [newResource, setNewResource] = useState({ title: '', type: 'PDF', url: '' });
   const [showResourceInput, setShowResourceInput] = useState(false);
   
-  // Loading and error states
   const [loading, setLoading] = useState(true);
   const [errors, setErrors] = useState<{[key: string]: string}>({});
   const [isSaving, setIsSaving] = useState(false);
 
-  // Resource types
+
   const resourceTypes = ['PDF', 'URL', 'Document', 'Video', 'Image', 'Other'];
+
+  const statusOptions = ['scheduled', 'in-progress', 'completed'];
 
   useEffect(() => {
     const loadSessionData = async () => {
@@ -62,7 +66,7 @@ export default function EditStudySessionPage() {
           fetchSessionResources(sessionId)
         ]);
 
-        // Format date and time
+ 
         const sessionDate = new Date(sessionData.date);
         const formattedDate = sessionDate.toISOString().split('T')[0];
         const formattedTime = sessionDate.toTimeString().slice(0, 5);
@@ -76,6 +80,7 @@ export default function EditStudySessionPage() {
           description: sessionData.description || '',
           location: sessionData.location,
           locationDetails: sessionData.location_details || '',
+          status: sessionData.status || 'scheduled'
         });
 
         setTopics(topicsData.map((topic: any) => ({
@@ -88,7 +93,7 @@ export default function EditStudySessionPage() {
         setInvitedEmails(sessionData.participants.map((p: any) => p.email));
       } catch (error) {
         console.error('Error loading session:', error);
-        // You might want to show an error message to the user
+
       } finally {
         setLoading(false);
       }
@@ -97,7 +102,7 @@ export default function EditStudySessionPage() {
     loadSessionData();
   }, [sessionId]);
 
-  // Handle form field changes
+  // Handle form changes
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setFormData({
@@ -136,21 +141,21 @@ export default function EditStudySessionPage() {
     setShowTopicInput(false);
   };
 
-  // Remove topic
+  // remove topic
   const removeTopic = (index: number) => {
     const updatedTopics = [...topics];
     updatedTopics.splice(index, 1);
     setTopics(updatedTopics);
   };
 
-  // Add participant email
+  // Add email
   const addParticipant = () => {
     if (newEmail.trim() === '') {
       setErrors({ ...errors, newEmail: 'Email is required' });
       return;
     }
     
-    // Simple email validation
+    // email check
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(newEmail)) {
       setErrors({ ...errors, newEmail: 'Please enter a valid email' });
@@ -202,7 +207,7 @@ export default function EditStudySessionPage() {
     setResources(updatedResources);
   };
 
-  // Handle form submission
+  
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -230,7 +235,7 @@ export default function EditStudySessionPage() {
 
     try {
       setIsSaving(true);
-      // Combine date and time
+    
       const dateTime = new Date(`${formData.date}T${formData.time}`);
       
       await updateStudySession(sessionId, {
@@ -240,13 +245,14 @@ export default function EditStudySessionPage() {
         duration: parseInt(formData.duration),
         description: formData.description,
         location: formData.location,
+        status: formData.status,
         locationDetails: formData.locationDetails,
         participantEmails: invitedEmails,
         resources: resources,
-        topics: topics
+        topics: topics,
       });
 
-      // Redirect to session detail page on success
+      // redirect on success
       router.push(`/study-session/${sessionId}`);
     } catch (error) {
       console.error('Error updating study session:', error);
@@ -282,7 +288,7 @@ export default function EditStudySessionPage() {
       <h1 className="text-2xl font-bold text-text-primary">Edit Study Session</h1>
       
       <form onSubmit={handleSubmit} className="space-y-6">
-        {/* Basic Info Card */}
+       
         <Card className="dark-card">
           <h2 className="text-lg font-bold text-text-primary mb-6">Session Information</h2>
           
@@ -318,6 +324,26 @@ export default function EditStudySessionPage() {
               />
               {errors.subject && <p className="text-red-500 text-xs mt-1">{errors.subject}</p>}
             </div>
+
+            {/* Status */}
+            <div>
+              <label htmlFor="status" className="block text-sm font-medium text-text-primary mb-1">
+                Status
+              </label>
+              <select
+                id="status"
+                name="status"
+                value={formData.status}
+                onChange={handleInputChange}
+                className="w-1/2 px-3 py-2 border rounded-md bg-card-bg border-card-border text-text-primary"
+              >
+                {statusOptions.map(status => (
+                  <option key={status} value={status}>
+                    {status.charAt(0).toUpperCase() + status.slice(1)}
+                  </option>
+                ))}
+              </select>
+            </div>
             
             {/* Description */}
             <div>
@@ -336,7 +362,7 @@ export default function EditStudySessionPage() {
           </div>
         </Card>
         
-        {/* Schedule Card */}
+        {/* Schedule*/}
         <Card className="dark-card">
           <h2 className="text-lg font-bold text-text-primary mb-6">Schedule</h2>
           
