@@ -1,5 +1,5 @@
 'use server'
-/* eslint-disable */
+
 
 import { createClient } from '@/utils/supabase/server'
 
@@ -194,12 +194,12 @@ export async function fetchSingleStudySession(sessionId: string) {
 
   const transformedSession = {
     ...session,
-    participants: session.study_session_participants?.map(participant => ({
+    /*participants: session.study_session_participants?.map(participant => ({
       id: participant.profiles.id,
       display_name: participant.profiles.display_name,
       email: participant.profiles.email,
       role: participant.profiles.role
-    })) || []
+    })) || []*/
   };
 
 

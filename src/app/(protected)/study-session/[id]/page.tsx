@@ -261,7 +261,7 @@ export default function StudySessionDetailPage() {
                 <Users className="h-5 w-5 text-primary-400 mr-3 mt-0.5" />
                 <div>
                   <p className="text-text-secondary text-sm">Participants</p>
-                  <p className="text-text-primary">{session.participants.length} people</p>
+                  <p className="text-text-primary">{/*session.participants.length*/} people</p>
                 </div>
               </div>
             </div>
@@ -411,10 +411,10 @@ export default function StudySessionDetailPage() {
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-lg font-bold text-text-primary">Participants</h2>
               <Badge variant="outline">
-                {session.participants.length}
+                {/*session.participants.length*/}
               </Badge>
             </div>
-            
+            {/*
             <div className="space-y-3">
               {session.participants.map((participant) => (
                 <div 
@@ -438,6 +438,7 @@ export default function StudySessionDetailPage() {
                 </div>
               ))}
             </div>
+            */}
             
             {session.status === 'scheduled' && (
               <Button 

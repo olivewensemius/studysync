@@ -90,7 +90,7 @@ export default function EditStudySessionPage() {
         })));
 
         setResources(resourcesData || []);
-        setInvitedEmails(sessionData.participants.map((p: any) => p.email));
+        // setInvitedEmails(sessionData.participants.map((p: any) => p.email));
       } catch (error) {
         console.error('Error loading session:', error);
 
