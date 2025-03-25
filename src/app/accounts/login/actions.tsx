@@ -30,7 +30,7 @@ export async function loginGoogle() {
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider:"google",
     options: {
-      redirectTo: 'http://localhost:3000/auth/callback', //remind me to change this on production :)
+      redirectTo: 'https://studysync-hackathon.vercel.app/auth/callback',
     },
   })
 
@@ -42,7 +42,7 @@ export async function loginGoogle() {
   if (data.url) {
     redirect(data.url) 
   }
-}
+} 
 
 export async function loginDiscord() {
   const supabase = await createClient()
@@ -50,7 +50,7 @@ export async function loginDiscord() {
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider:"discord",
     options: {
-      redirectTo: 'http://localhost:3000/auth/callback',
+      redirectTo: 'https://studysync-hackathon.vercel.app/auth/callback',
     },
   })
 

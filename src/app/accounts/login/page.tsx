@@ -41,7 +41,13 @@ export default function LoginPage() {
           className="w-full mb-4 flex items-center justify-center gap-2 cursor-pointer"
           onClick={loginGoogle}
         >
-          <Image src="https://www.google.com/favicon.ico" alt="Google" className="w-4 h-4" />
+          <Image 
+            src="https://www.google.com/favicon.ico" 
+            alt="Google" 
+            width={16} 
+            height={16} 
+            className="w-4 h-4" 
+          />
           Sign in with Google
         </Button>
 
@@ -51,7 +57,13 @@ export default function LoginPage() {
           className="w-full mb-4 flex items-center justify-center gap-2 cursor-pointer"
           onClick={loginDiscord}
         >
-         <Image src="/discord.svg" alt="Discord" className="w-4 h-4" />
+         <Image 
+            src="/discord.svg" 
+            alt="Discord" 
+            width={16} 
+            height={16} 
+            className="w-4 h-4" 
+          />
           Sign in with Discord
         </Button>
 

@@ -13,7 +13,8 @@ const nextConfig: NextConfig = {
       'gravatar.com',
       'ui-avatars.com',
       'lh3.googleusercontent.com', // Google user avatars
-      'cdn.discordapp.com'
+      'cdn.discordapp.com',
+      'www.google.com'
     ],
   },
 };
